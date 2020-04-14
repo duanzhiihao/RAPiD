@@ -1,3 +1,16 @@
+script.py
+
+logs/
+results/
+
+.vscode
+.DS_Store
+*.json
+*.sh
+*.log
+*.ckpt
+*.pth
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

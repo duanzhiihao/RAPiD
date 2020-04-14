@@ -1,0 +1,369 @@
+import os
+import numpy as np
+import torch
+import torch.nn as nn
+import torchvision.transforms.functional as tvf
+
+from utils.iou_mask import iou_mask, iou_rle
+import models.backbones
+import models.losses
+# from models.losses import bcel2bce, period_L1, period_L2, FocalBCE
+
+
+class RAPiD(nn.Module):
+    def __init__(self, backbone='dark53', img_norm=False, anchor_size=1024, **kwargs):
+        super().__init__()
+        self.input_normalization = img_norm
+        if anchor_size == 1024:
+            anchors = [
+                [18.7807, 33.4659], [28.8912, 61.7536], [48.6849, 68.3897],
+                [45.0668, 101.4673], [63.0952, 113.5382], [81.3909, 134.4554],
+                [91.7364, 144.9949], [137.5189, 178.4791], [194.4429, 250.7985]
+            ]
+        elif anchor_size == 608:
+            anchors = [
+                [10.7, 21.888], [21.6448, 40.0672], [32.9536, 66.9408],
+                [39.0944, 88.2208], [46.0256, 108.3456], [69.1296, 103.36],
+                [59.4016, 124.5792], [93.2064, 125.0656], [78.128, 158.4448]
+            ]
+        else:
+            raise Exception('Invalid anchor box size')
+        indices = [[6,7,8], [3,4,5], [0,1,2]]
+        self.anchors_all = torch.Tensor(anchors).float()
+        assert self.anchors_all.shape[1] == 2 and len(indices) == 3
+        self.index_L = torch.Tensor(indices[0]).long()
+        self.index_M = torch.Tensor(indices[1]).long()
+        self.index_S = torch.Tensor(indices[2]).long()
+
+        if backbone == 'dark53':
+            self.backbone = models.backbones.Darknet53()
+            print("Using backbone Darknet-53. Loading ImageNet weights....")
+            backbone_imgnet_path = './weights/dark53_imgnet.pth'
+            if os.path.exists(backbone_imgnet_path):
+                pretrained = torch.load(backbone_imgnet_path)
+                self.load_state_dict(pretrained)
+        elif backbone == 'res34':
+            self.backbone = models.backbones.resnet34()
+        elif backbone == 'res50':
+            self.backbone = models.backbones.resnet50()
+        elif backbone == 'res101':
+            self.backbone = models.backbones.resnet101()
+        else:
+            raise Exception('Unknown backbone name')
+        pnum = sum(p.numel() for p in self.backbone.parameters() if p.requires_grad)
+        print('Number of parameters in backbone:', pnum)
+
+        if backbone == 'dark53':
+            chS, chM, chL = 256, 512, 1024
+        elif backbone in {'res34'}:
+            chS, chM, chL = 128, 256, 512
+        elif backbone in {'res50','res101'}:
+            chS, chM, chL = 512, 1024, 2048
+        self.branch_L = models.backbones.YOLOBranch(chL, 18)
+        self.branch_M = models.backbones.YOLOBranch(chM, 18, prev_ch=(chL//2,chM//2))
+        self.branch_S = models.backbones.YOLOBranch(chS, 18, prev_ch=(chM//2,chS//2))
+        
+        self.pred_L = PredLayer(self.anchors_all, self.index_L, **kwargs)
+        self.pred_M = PredLayer(self.anchors_all, self.index_M, **kwargs)
+        self.pred_S = PredLayer(self.anchors_all, self.index_S, **kwargs)
+
+    def forward(self, x, labels=None, **kwargs):
+        '''
+        x: a batch of images, e.g. shape(8,3,608,608)
+        labels: a batch of ground truth
+        '''
+        torch.cuda.reset_max_memory_allocated()
+        assert x.dim() == 4
+        self.img_size = x.shape[2]
+        # normalization
+        if self.input_normalization:
+            for i in range(x.shape[0]):
+                x[i] = tvf.normalize(x[i], [0.485,0.456,0.406], [0.229,0.224,0.225],
+                                    inplace=True)
+
+        # go through backbone
+        small, medium, large = self.backbone(x)
+
+        # go through detection blocks in three scales
+        detect_L, feature_L = self.branch_L(large, previous=None)
+        detect_M, feature_M = self.branch_M(medium, previous=feature_L)
+        detect_S, _ = self.branch_S(small, previous=feature_M)
+
+        # process the boxes, and calculate loss if there is gt
+        boxes_L, loss_L = self.pred_L(detect_L, self.img_size, labels)
+        boxes_M, loss_M = self.pred_M(detect_M, self.img_size, labels)
+        boxes_S, loss_S = self.pred_S(detect_S, self.img_size, labels)
+
+        if labels is None:
+            # assert boxes_L.dim() == 3
+            boxes = torch.cat((boxes_L,boxes_M,boxes_S), dim=1)
+            return boxes
+        else:
+            # check all the gt objects are assigned
+            gt_num = (labels[:,:,0:4].sum(dim=2) > 0).sum()
+            assigned = self.pred_L.gt_num + self.pred_M.gt_num + self.pred_S.gt_num
+            assert assigned == gt_num
+            self.loss_str = self.pred_L.loss_str + '\n' + self.pred_M.loss_str + \
+                            '\n' + self.pred_S.loss_str
+            loss = loss_L + loss_M + loss_S
+            return loss
+
+    def train_mode(self, **kwargs):
+        self.train()
+    
+    # def optim_init(self, optim='SGD', lr, weight_decay=0):
+    #     '''
+    #     initialize the optimizer
+    #     '''
+    #     params = []
+    #     # set weight decay only on conv.weight
+    #     for key, value in model.named_parameters():
+    #         if 'conv.weight' in key:
+    #             params += [{'params':value, 'weight_decay':decay_SGD}]
+    #         else:
+    #             params += [{'params':value, 'weight_decay':0.0}]
+    #     self.
+
+
+class PredLayer(nn.Module):
+    '''
+    Calculate the output boxes and losses.
+    '''
+    def __init__(self, all_anchors, anchor_indices, **kwargs):
+        super().__init__()
+        # self.anchors_all = all_anchors
+        self.anchor_indices = anchor_indices
+        self.anchors = all_anchors[anchor_indices]
+        # anchors: tensor, e.g. shape(2,3), [[116,90],[156,198]]
+        self.num_anchors = len(anchor_indices)
+        # all anchors, (0, 0, w, h), used for calculating IoU
+        self.anch_00wha_all = torch.zeros(len(all_anchors), 5)
+        self.anch_00wha_all[:,2:4] = all_anchors # absolute, degree
+
+        self.ignore_thre = 0.6
+
+        # self.loss4obj = FocalBCE(reduction='sum')
+        self.loss4obj = nn.BCELoss(reduction='sum')
+        self.l2_loss = nn.MSELoss(reduction='sum')
+        self.bce_loss = nn.BCELoss(reduction='sum')
+        loss_angle = kwargs.get('loss_angle', 'period_L1')
+        if loss_angle in {'L1', 'LL1'}:
+            self.loss4angle = nn.L1Loss(reduction='sum')
+        elif loss_angle in {'L2', 'LL2'}:
+            self.loss4angle = nn.MSELoss(reduction='sum')
+        elif loss_angle == 'BCE':
+            self.loss4angle = nn.BCELoss(reduction='sum')
+        elif loss_angle == 'period_L1':
+            self.loss4angle = models.losses.period_L1(reduction='sum')
+        elif loss_angle == 'period_L2':
+            self.loss4angle = models.losses.period_L2(reduction='sum')
+        elif loss_angle == 'none':
+            # inference
+            pass
+        else:
+            raise Exception('unknown loss for angle')
+        self.laname = loss_angle
+        self.angle_range = kwargs.get('angran', 360)
+        assert self.angle_range in {180, 360}
+
+    def forward(self, raw, img_size, labels=None):
+        """
+        Args:
+        
+        Returns:
+        """
+        # assert raw.dim() == 4
+        # assert raw.shape[2] == raw.shape[3]
+        # assert img_size > 0 and isinstance(img_size, int)
+
+        # raw shape(BatchSize, anchor_num*6, FeatureSize, FeatureSize)
+        device = raw.device
+        nB = raw.shape[0] # batch size
+        nA = self.num_anchors # number of anchors
+        nG = raw.shape[2] # grid size, or resolution
+        nCH = 6 # number of channels, 6=(x,y,w,h,angle,conf)
+
+        raw = raw.view(nB, nA, nCH, nG, nG)
+        raw = raw.permute(0, 1, 3, 4, 2).contiguous()
+        # now shape(nB, nA, nG, nG, nCH), meaning (nB x nA x nG x nG) predictions
+
+        # sigmoid activation for xy, angle, obj_conf
+        xy_offset = torch.sigmoid(raw[..., 0:2]) # x,y
+        # linear activation for w, h
+        wh_scale = raw[..., 2:4]
+        # angle
+        if self.laname in {'LL1', 'LL2'}:
+            # linear activation
+            angle = raw[..., 4]
+        else:
+            angle = torch.sigmoid(raw[..., 4])
+        # logistic activation for objectness confidence
+        conf = torch.sigmoid(raw[..., 5])
+        # now xy are the offsets, wh are the scale, and angle are rotation from 0
+
+        # calculate pred - xywh obj cls
+        x_shift = torch.arange(nG, dtype=torch.float, device=device
+                                ).repeat(nG, 1).view(1,1,nG,nG)
+        y_shift = torch.arange(nG, dtype=torch.float, device=device
+                                ).repeat(nG, 1).t().view(1,1,nG,nG)
+
+        # make sure the anchors are not normalized
+        anchors = self.anchors.clone().to(device=device)
+        anch_w = anchors[:,0].view(1, nA, 1, 1) # absolute
+        anch_h = anchors[:,1].view(1, nA, 1, 1) # absolute
+
+        pred_final = torch.empty(nB, nA, nG, nG, 6, device=device)
+        pred_final[..., 0] = (xy_offset[..., 0] + x_shift) / nG # normalized 0-1
+        pred_final[..., 1] = (xy_offset[..., 1] + y_shift) / nG # normalized 0-1
+        pred_final[..., 2] = torch.exp(wh_scale[..., 0]) * anch_w # absolute
+        pred_final[..., 3] = torch.exp(wh_scale[..., 1]) * anch_h # absolute
+        if self.laname in {'LL1', 'LL2'}:
+            pred_final[..., 4] = angle / np.pi * 180 # degree
+        else:
+            pred_final[..., 4] = angle*self.angle_range - self.angle_range/2 # degree
+        pred_final[..., 5] = conf
+
+        # debug0 = angle[conf >= 0.1]
+        # debug1 = pred_final[conf >= 0.1]
+        # assert not torch.isinf(pred_final).any(), print(torch.isinf(pred_final).nonzero())
+        # assert not torch.isnan(pred_final).any(), print(torch.isnan(pred_final).nonzero())
+
+        if labels is None:
+            # inference, convert final predictions to absolute
+            pred_final[..., :2] *= img_size
+            # self.dt_cache = pred_final.clone()
+            return pred_final.view(nB, -1, nCH).detach(), None
+        else:
+            # training, convert final predictions to be normalized
+            pred_final[..., 2:4] /= img_size
+            # force the normalized w and h to be <= 1
+            pred_final[..., 0:4].clamp_(min=0, max=1)
+
+        pred_boxes = pred_final[..., :5].detach() # xywh normalized, a degree
+        pred_confs = pred_final[..., 5].detach()
+
+        # target assignment
+        obj_mask = torch.zeros(nB, nA, nG, nG, dtype=torch.bool, device=device)
+        penalty_mask = torch.ones(nB, nA, nG, nG, dtype=torch.bool, device=device)
+        target = torch.zeros(nB, nA, nG, nG, nCH, dtype=torch.float, device=device)
+
+        # labels = labels.cpu().data
+        labels = labels.detach()
+        nlabel = (labels[:,:,0:4].sum(dim=2) > 0).sum(dim=1)  # number of objects
+        assert (labels[:,:,4].abs() <= 90).all()
+        labels = labels.to(device=device)
+
+        tx_all, ty_all = labels[:,:,0] * nG, labels[:,:,1] * nG # 0-nG
+        tw_all, th_all = labels[:,:,2], labels[:,:,3] # normalized 0-1
+        ta_all = labels[:,:,4] # degree, 0-max_angle
+
+        ti_all = tx_all.long()
+        tj_all = ty_all.long()
+
+        norm_anch_wh = anchors[:,0:2] / img_size # normalized
+        norm_anch_00wha = self.anch_00wha_all.clone().to(device=device)
+        norm_anch_00wha[:,2:4] /= img_size # normalized
+
+        # traverse all images in a batch
+        valid_gt_num = 0
+        for b in range(nB):
+            n = int(nlabel[b]) # number of ground truths in b'th image
+            if n == 0:
+                # no ground truth
+                continue
+            gt_boxes = torch.zeros(n, 5, device=device)
+            gt_boxes[:, 2] = tw_all[b, :n] # normalized 0-1
+            gt_boxes[:, 3] = th_all[b, :n] # normalized 0-1
+            gt_boxes[:, 4] = 0
+
+            # calculate iou between truth and reference anchors
+            anchor_ious = iou_mask(gt_boxes, norm_anch_00wha, xywha=True,
+                                   mask_size=64, is_degree=True)
+            # anchor_ious = iou_rle(gt_boxes, norm_anch_00wha, xywha=True,
+            #                       is_degree=True, img_size=img_size, normalized=True)
+            best_n_all = torch.argmax(anchor_ious, dim=1)
+            best_n = best_n_all % self.num_anchors
+            
+            valid_mask = torch.zeros(n, dtype=torch.bool, device=device)
+            for ind in self.anchor_indices.to(device=device):
+                valid_mask = ( valid_mask | (best_n_all == ind) )
+            if sum(valid_mask) == 0:
+                # no anchor is responsible for any ground truth
+                continue
+            else:
+                valid_gt_num += sum(valid_mask)
+            
+            best_n = best_n[valid_mask]
+            truth_i = ti_all[b, :n][valid_mask]
+            truth_j = tj_all[b, :n][valid_mask]
+
+            gt_boxes[:, 0] = tx_all[b, :n] / nG # normalized 0-1
+            gt_boxes[:, 1] = ty_all[b, :n] / nG # normalized 0-1
+            gt_boxes[:, 4] = ta_all[b, :n] # degree
+
+            # print(torch.cuda.memory_allocated()/1024/1024/1024, 'GB')
+            # gt_boxes e.g. shape(11,4)
+            selected_idx = pred_confs[b] > 0.001
+            selected = pred_boxes[b][selected_idx]
+            if len(selected) < 2000 and len(selected) > 0:
+                # ignore some predicted boxes who have high overlap with any groundtruth
+                # pred_ious = iou_mask(selected.view(-1,5), gt_boxes, xywha=True,
+                #                     mask_size=32, is_degree=True)
+                pred_ious = iou_rle(selected.view(-1,5), gt_boxes, xywha=True,
+                                    is_degree=True, img_size=img_size, normalized=True)
+                pred_best_iou, _ = pred_ious.max(dim=1)
+                to_be_ignored = (pred_best_iou > self.ignore_thre)
+                # set mask to zero (ignore) if the pred BB has a large IoU with any gt BB
+                penalty_mask[b,selected_idx] = ~to_be_ignored
+            # if torch.rand(1) > 0.99:
+            #     print('ignored num:', (penalty_mask==False).sum().cpu().item())
+
+            # pred_ious = iou_rle(pred_boxes[b].view(-1,5), gt_boxes, xywha=True,
+            #                     is_degree=True, img_size=img_size, normalized=True)
+            # pred_best_iou, _ = pred_ious.max(dim=1)
+            # pred_best_iou = (pred_best_iou > self.ignore_thre)
+            # pred_best_iou = pred_best_iou.view(pred_boxes[b].shape[:3])
+            # # set mask to zero (ignore) if pred matches a truth more than 0.7
+            # penalty_mask[b] = ~pred_best_iou
+            # mask one -> give penalty
+
+            penalty_mask[b,best_n,truth_j,truth_i] = 1
+            obj_mask[b,best_n,truth_j,truth_i] = 1
+            target[b,best_n,truth_j,truth_i,0] = tx_all[b,:n][valid_mask] - tx_all[b,:n][valid_mask].floor()
+            target[b,best_n,truth_j,truth_i,1] = ty_all[b,:n][valid_mask] - ty_all[b,:n][valid_mask].floor()
+            target[b,best_n,truth_j,truth_i,2] = torch.log(tw_all[b,:n][valid_mask]/norm_anch_wh[best_n,0] + 1e-16)
+            target[b,best_n,truth_j,truth_i,3] = torch.log(th_all[b,:n][valid_mask]/norm_anch_wh[best_n,1] + 1e-16)
+            # use radian when calculating loss
+            target[b,best_n,truth_j,truth_i,4] = gt_boxes[:, 4][valid_mask] / 180 * np.pi
+            # hs = th_all[b,:n][valid_mask]
+            # ws = tw_all[b,:n][valid_mask]
+            # debug = th_all[b,:n][valid_mask]/tw_all[b,:n][valid_mask] - 1
+            # loss_scale[b,best_n,truth_j,truth_i,0] = th_all[b,:n][valid_mask]/tw_all[b,:n][valid_mask] - 1
+            target[b,best_n,truth_j,truth_i,5] = 1 # objectness confidence
+            # smaller objects have higher losses
+            # tgt_scale[b,best_n,truth_j,truth_i,:] = torch.sqrt(2 - tw_all[b,:n][valid_mask]*th_all[b,:n][valid_mask]).unsqueeze(1)
+
+        loss_xy = self.bce_loss(xy_offset[obj_mask], target[...,0:2][obj_mask])
+        wh_pred = wh_scale[obj_mask]
+        wh_target = target[...,2:4][obj_mask]
+        loss_wh = self.l2_loss(wh_pred, wh_target)
+        if self.laname in {'LL1', 'LL2'}:
+            angle_pred = angle[obj_mask] # radian
+        elif self.angle_range == 360:
+            angle_pred = angle[obj_mask] * 2 * np.pi - np.pi
+        elif self.angle_range == 180:
+            angle_pred = angle[obj_mask] * np.pi - np.pi/2
+        # assert (angle_pred >= -np.pi).all() and (angle_pred <= np.pi).all()
+        # assert (target[..., 4][obj_mask] >= -0.5*np.pi).all()
+        # assert (target[..., 4][obj_mask] <= 0.5*np.pi).all()
+        loss_angle = self.loss4angle(angle_pred, target[..., 4][obj_mask])
+        loss_obj = self.loss4obj(conf[penalty_mask], target[...,5][penalty_mask])
+
+        loss = loss_xy + 0.5*loss_wh + loss_angle + loss_obj
+        ngt = valid_gt_num + 1e-16
+        self.gt_num = valid_gt_num
+        self.loss_str = f'level_{nG} total {int(ngt)} objects: ' \
+                        f'xy/gt {loss_xy/ngt:.3f}, wh/gt {loss_wh/ngt:.3f}' \
+                        f', angle/gt {loss_angle/ngt:.3f}, conf {loss_obj:.3f}'
+
+        return None, loss
