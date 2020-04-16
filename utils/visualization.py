@@ -26,7 +26,7 @@ def draw_dt_on_np(im, detections, print_dt=False, color=(255,0,0),
     im: image numpy array, shape(h,w,3), RGB
     detections: rows of [x,y,w,h,a,conf], angle in degree
     '''
-    line_width = im.shape[0] // 300
+    line_width = kwargs.get('line_width', im.shape[0] // 300)
     font = cv2.FONT_HERSHEY_SIMPLEX
     font_bold = max(int(2*text_size), 1)
     for bb in detections:

@@ -61,6 +61,7 @@ class Detector():
         if kwargs.get('visualize', False):
             np_img = np.array(img)
             visualization.draw_dt_on_np(np_img, detections, **kwargs)
+            plt.figure(figsize=(10,10))
             plt.imshow(np_img)
             plt.show()
         return detections
