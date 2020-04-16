@@ -13,12 +13,8 @@ from utils import visualization, dataloader, utils
 
 
 class Detector():
-    def __init__(self, weights_path=None, conf_thres=0.3, model_name='', model=None):
+    def __init__(self, model_name='', weights_path=None, model=None, **kwargs):
         assert torch.cuda.is_available()
-        # post-processing settings
-        self.conf_thres = conf_thres
-        self.nms_func = utils.nms
-
         if model:
             self.model = model
             return
@@ -36,6 +32,11 @@ class Detector():
         print(f'Successfully loaded weights: {weights_path}')
         model.eval()
         self.model = model.cuda()
+        
+        # post-processing settings
+        self.conf_thres = kwargs.get('conf_thres', None)
+        self.input_size = kwargs.get('input_size', None)
+        self.test_aug = kwargs.get('test_aug', None)
     
     def detect_one(self, **kwargs):
         '''
@@ -75,7 +76,7 @@ class Detector():
         '''
         gt_path = kwargs['gt_path'] if 'gt_path' in kwargs else None
 
-        ims = dataloader.Images4YOLO(img_dir, gt_path)
+        ims = dataloader.Images4YOLO(img_dir, gt_path) # TODO
         dts = self._detect_iter(iter(ims), **kwargs)
         # dts = self._detect_iter_seq_nms_causal(iter(ims), **kwargs)
         return dts
@@ -96,8 +97,8 @@ class Detector():
         return detection_json
     
     def _predict_pil(self, pil_img, **kwargs):
-        test_aug = kwargs.get('test_aug', None)
-        input_size = kwargs.get('input_size', 1024)
+        test_aug = kwargs.get('test_aug', self.test_aug)
+        input_size = kwargs.get('input_size', self.input_size)
         conf_thres = kwargs.get('conf_thres', self.conf_thres)
         assert isinstance(pil_img, Image.Image), 'input must be a PIL.Image'
 
@@ -150,7 +151,7 @@ class Detector():
                 visualization.draw_dt_on_np(np_img, dts)
                 plt.imshow(np_img)
                 plt.show()
-            dts = self.nms_func(dts, is_degree=True, nms_thres=0.45, img_size=input_size)
+            dts = utils.nms(dts, is_degree=True, nms_thres=0.45, img_size=input_size)
             dts = utils.detection2original(dts, pad_info.squeeze())
             if kwargs.get('debug', False):
                 np_img = np.array(pil_img)

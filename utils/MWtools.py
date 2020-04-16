@@ -364,7 +364,7 @@ def get_video_name(s):
     videos = [
         'Meeting1', 'Meeting2', 'Lab1', 'Lab2',
         'Lunch1', 'Lunch2', 'Lunch3', 'Edge_cases',
-        'IRfilter', 'IRill', 'All_off', 'Door1',
+        'IRfilter', 'IRill', 'All_off', 'Door1', 'Activity',
         'MW',
     ]
     for name in videos:
