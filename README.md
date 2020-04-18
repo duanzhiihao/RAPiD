@@ -39,7 +39,7 @@ TBD
 - [ ] Update README
 
 ## Citation
-If you find our code or dataset useful, please consider citing our paper:
+RAPiD source code is available for non-commercial use. If you find our code or dataset useful, or publish any work reporting results using this source code, please consider citing our paper
 ```
 Z. Duan, M.O. Tezcan, H. Nakamura, P. Ishwar and J. Konrad, 
 “RAPiD: Rotation-Aware People Detection in Overhead Fisheye Images”, 
