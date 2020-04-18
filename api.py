@@ -27,7 +27,6 @@ class Detector():
         print(f'Successfully initialized model {model_name}.',
             'Total number of trainable parameters:', total_params)
         
-        weights_path = weights_path or './weights/pL1_H1MW1024_Mar11_4000.ckpt'
         model.load_state_dict(torch.load(weights_path)['model'])
         print(f'Successfully loaded weights: {weights_path}')
         model.eval()
