@@ -6,18 +6,22 @@ This repository is the official PyTorch implementation of the following paper:
 
 Our code can reproduce the **training** and **testing** results reported in the paper.
 
-## Requirements
-In short, the code should work under
+## Installation
+**Requirements**:
+The code should be able to work with the following environment. Detailed environment information can be found in `requirements.txt`.
 - PyTorch >= 1.0. Installation instructions can be found at https://pytorch.org/get-started/locally/
 - opencv-python
 - [pycocotools](https://github.com/cocodataset/cocoapi) (for Windows users, please refer to [this repo](https://github.com/maycuatroi/pycocotools-window))
 - tqdm
 - tensorboard (only for training)
 
-The detailed environment information is listed in `requirements.txt`.
+**Installation**
+```bash
+git clone https://github.com/duanzhiihao/RAPiD.git
+```
 
 ## Testing on one image
-TBD
+`demo.ipynb` gives an example of testing on a single image and visualizing the results.
 
 ## Evaluation on CEPDOF
 TBD
@@ -29,6 +33,7 @@ TBD
 TBD
 
 ## TODO
+- [ ] Upload network weights
 - [ ] Update README
 
 ## Citation
