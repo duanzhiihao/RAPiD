@@ -2,7 +2,7 @@ import json
 from collections import defaultdict
 import numpy as np
 import torch
-from .iou_mask import iou_mask, iou_geometry, iou_rle
+from .iou_mask import iou_mask, iou_rle
 
 
 class MWeval():

@@ -294,65 +294,6 @@ def iou_mask(boxes1, boxes2, xywha, mask_size=64, is_degree=True):
     return iou_matrix
 
 
-from shapely import affinity
-from shapely.geometry import Polygon
-from shapely.geometry import box
-
-def iou_geometry(boxes1, boxes2, xywha, mask_size=None, is_degree=True):
-    '''
-    use geometry method from sharply package to calculate IoU between boxes1 and boxes2
-    Arguments:
-        boxes1: tensor or numpy, shape(N,5), 5=(x, y, w, h, angle 0~90)
-        boxes2: tensor or numpy, shape(M,5), 5=(x, y, w, h, angle 0~90)
-        xywha: True if xywha, False if xyxya
-        mask_size: dummy parameter
-        is_degree: True if degree, False if radian
-
-    Return:
-        iou_matrix: tensor, shape(N,M), float32, 
-                    ious of all possible pairs between boxes1 and boxes2
-    '''
-    assert not torch.isinf(boxes2).any()
-    assert not torch.isnan(boxes2).any()
-    assert not torch.isinf(boxes1).any()
-    assert not torch.isnan(boxes1).any()
-    assert xywha == True and is_degree == True
-
-    if not (torch.is_tensor(boxes1) and torch.is_tensor(boxes2)):
-        # convert to tensor, (batch, (x,y,w,h,a))
-        boxes1, boxes2 = torch.from_numpy(boxes1), torch.from_numpy(boxes2)
-
-    boxes1 = boxes1.clone().float().view(-1,5)
-    boxes2 = boxes2.clone().float().view(-1,5)
-    num1, num2 = boxes1.shape[0], boxes2.shape[0]
-    if num1 == 0 or num2 == 0:
-        return torch.tensor([]).view(num1, num2)
-
-    b1_angle = boxes1[:, 4]
-    b2_angle = boxes2[:, 4]
-
-    b1_x1, b1_x2 = boxes1[:, 0] - boxes1[:, 2] / 2, boxes1[:, 0] + boxes1[:, 2] / 2
-    b1_y1, b1_y2 = boxes1[:, 1] - boxes1[:, 3] / 2, boxes1[:, 1] + boxes1[:, 3] / 2
-    b2_x1, b2_x2 = boxes2[:, 0] - boxes2[:, 2] / 2, boxes2[:, 0] + boxes2[:, 2] / 2
-    b2_y1, b2_y2 = boxes2[:, 1] - boxes2[:, 3] / 2, boxes2[:, 1] + boxes2[:, 3] / 2
-
-    iou_matrix = torch.empty((num1, num2))
-
-    for i in range(num1):
-        for j in range(num2):
-            # Generate geometry box object 
-            b1 = box(b1_x1[i], b1_y1[i], b1_x2[i], b1_y2[i])
-            b2 = box(b2_x1[j], b2_y1[j], b2_x2[j], b2_y2[j])
-
-            # Rotate the boxes
-            rotated_b1 = affinity.rotate(b1, b1_angle[i].clone())
-            rotated_b2 = affinity.rotate(b2, b2_angle[j].clone())
-
-            iou_matrix[i,j] = rotated_b1.intersection(rotated_b2).area / rotated_b1.union(rotated_b2).area
-
-    return iou_matrix
-
-
 from pycocotools import mask as maskUtils
 def iou_rle(boxes1, boxes2, xywha, is_degree=True, **kwargs):
     r'''
