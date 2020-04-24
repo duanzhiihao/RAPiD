@@ -6,15 +6,22 @@ This repository is the official PyTorch implementation of the following paper. O
 
 ## Installation
 **Requirements**:
-The code should be able to work with the following environment. Detailed environment information can be found in `requirements.txt`.
+The code should be able to work as long as you have the following packages:
 - PyTorch >= 1.0. Installation instructions can be found at https://pytorch.org/get-started/locally/
 - opencv-python
 - [pycocotools](https://github.com/cocodataset/cocoapi) (for Windows users, please refer to [this repo](https://github.com/maycuatroi/pycocotools-window))
 - tqdm
 - tensorboard (only for training)
 
-**Installation**
+**Installation** with Linux, CUDA10.1, and Conda:
 ```bash
+conda create --name RAPiD_env python=3.7
+conda activate RAPiD_env
+
+conda install pytorch torchvision cudatoolkit=10.1 -c pytorch
+conda install -c conda-forge pycocotools
+conda install tqdm opencv
+
 git clone https://github.com/duanzhiihao/RAPiD.git
 ```
 
