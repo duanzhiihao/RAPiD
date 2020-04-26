@@ -17,17 +17,14 @@ import api
 def parse_args():
     parser = argparse.ArgumentParser()
     # parser.add_argument('--SCC', action='store_true')
-    parser.add_argument('--model', type=str, default='ex_pL1')
+    parser.add_argument('--model', type=str, default='rapid_pL1')
     parser.add_argument('--backbone', type=str, default='dark53')
-    parser.add_argument('--dataset', type=str, default='THH1MW')
+    parser.add_argument('--dataset', type=str, default='H1MW')
     parser.add_argument('--batch_size', type=int, default=1)
 
     parser.add_argument('--high_resolution', action='store_true')
-    # parser.add_argument('--img_norm', action='store_true')
 
-    parser.add_argument('--checkpoint', type=str, default='exact_pL1_dark53_H1MW1024_Mar11_4000.ckpt')
-    # parser.add_argument('--load_optim', action='store_true')
-    # parser.add_argument('--optim', type=str, default='SGDMR')
+    parser.add_argument('--checkpoint', type=str, default='')
 
     parser.add_argument('--eval_interval', type=int, default=1000)
     parser.add_argument('--img_interval', type=int, default=500)
@@ -35,14 +32,13 @@ def parse_args():
     parser.add_argument('--checkpoint_interval', type=int, default=2000)
     
     parser.add_argument('--debug', action='store_true') # default=True)
-    parser.add_argument('--cuda', type=bool, default=True) # default=True)
-    parser.add_argument('--skip_first_eval', action='store_true')
+    parser.add_argument('--cuda', type=bool, default=True)
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = parse_args()
-    assert torch.cuda.is_available()
+    assert args.cuda and torch.cuda.is_available() # Currently do not support CPU
     # -------------------------- settings ---------------------------
     # assert not args.adversarial
     target_size = 1024 if args.high_resolution else 608
@@ -83,24 +79,6 @@ if __name__ == '__main__':
                 factor = 0.1
             else:
                 factor = 0.01
-            return factor
-    elif args.dataset == 'THEODORE':
-        train_img_dir = '../../../THEODORE/images'
-        train_json = '../../../THEODORE/annotations/person_bbox.json'
-        val_img_dir = '../../../COSSY/Lab1/'
-        val_json = '../../../COSSY/annotations/Lab1.json'
-        lr_SGD = 0.0001 / batch_size / subdivision
-        # Learning rate setup
-        def burnin_schedule(i):
-            burn_in = 500
-            if i < burn_in:
-                factor = (i / burn_in) ** 2
-            elif i < 20000:
-                factor = 1.0
-            elif i < 40000:
-                factor = 0.3
-            else:
-                factor = 0.1
             return factor
     elif args.dataset == 'MW':
         train_img_dir = '../../../MW18Mar/whole'
@@ -183,144 +161,20 @@ if __name__ == '__main__':
             else:
                 factor = 0.1
             return factor
-    elif args.dataset == 'THH1MW':
-        videos = ['Meeting1', 'Meeting2', 'Lab2', 'MW']
-        train_img_dir = [f'../../../COSSY/{s}/' for s in videos] + ['../../../THEODORE/images']
-        train_json = [f'../../../COSSY/annotations/{s}.json' for s in videos] + ['../../../THEODORE/annotations/person_bbox.json']
-        val_img_dir = '../../../COSSY/Lab1/'
-        val_json = '../../../COSSY/annotations/Lab1.json'
-        lr_SGD = 0.0001 / batch_size / subdivision
-        # Learning rate setup
-        def burnin_schedule(i):
-            burn_in = 500
-            if i < burn_in:
-                factor = (i / burn_in) ** 2
-            elif i < 10000:
-                factor = 1.0
-            elif i < 20000:
-                factor = 0.3
-            else:
-                factor = 0.1
-            return factor
-    elif args.dataset == 'THH1H2':
-        videos = ['Meeting1', 'Meeting2', 'Lab2',
-                  'Lunch1', 'Lunch2', 'Lunch3', 'Edge_cases', 'IRill']
-        train_img_dir = [f'../../../COSSY/{s}/' for s in videos] + ['../../../THEODORE/images']
-        train_json = [f'../../../COSSY/annotations/{s}.json' for s in videos] + ['../../../THEODORE/annotations/person_bbox.json']
-        val_img_dir = '../../../COSSY/Lab1/'
-        val_json = '../../../COSSY/annotations/Lab1.json'
-        lr_SGD = 0.0001 / batch_size / subdivision
-        # Learning rate setup
-        def burnin_schedule(i):
-            burn_in = 500
-            if i < burn_in:
-                factor = (i / burn_in) ** 2
-            elif i < 10000:
-                factor = 1.0
-            elif i < 20000:
-                factor = 0.3
-            else:
-                factor = 0.1
-            return factor
-    elif args.dataset == 'THH2MW':
-        videos = ['Lunch1', 'Lunch2', 'Edge_cases', 'IRill', 'MW']
-        train_img_dir = [f'../../../COSSY/{s}/' for s in videos] + ['../../../THEODORE/images']
-        train_json = [f'../../../COSSY/annotations/{s}.json' for s in videos] + ['../../../THEODORE/annotations/person_bbox.json']
-        val_img_dir = '../../../COSSY/Lunch3/'
-        val_json = '../../../COSSY/annotations/Lunch3.json'
-        lr_SGD = 0.0001 / batch_size / subdivision
-        # Learning rate setup
-        def burnin_schedule(i):
-            burn_in = 500
-            if i < burn_in:
-                factor = (i / burn_in) ** 2
-            elif i < 10000:
-                factor = 1.0
-            elif i < 20000:
-                factor = 0.3
-            else:
-                factor = 0.1
-            return factor
-    elif args.dataset == 'COCOTHH1MW':
-        videos = ['Meeting1', 'Meeting2', 'Lab2', 'MW']
-        train_img_dir = ['../../../COCO/train2017', '../../../THEODORE/images']
-        train_img_dir += [f'../../../COSSY/{s}/' for s in videos]
-        train_json = ['../../../COCO/annotations/instances_train2017.json', '../../../THEODORE/annotations/person_bbox.json']
-        train_json += [f'../../../COSSY/annotations/{s}.json' for s in videos]
-        val_img_dir = '../../../COSSY/Lab1/'
-        val_json = '../../../COSSY/annotations/Lab1.json'
-        lr_SGD = 0.0002 / batch_size / subdivision
-        # Learning rate setup
-        def burnin_schedule(i):
-            burn_in = 500
-            if i < burn_in:
-                factor = (i / burn_in) ** 2
-            elif i < 10000:
-                factor = 1.0
-            elif i < 20000:
-                factor = 0.3
-            else:
-                factor = 0.1
-            return factor
-    elif args.dataset == 'Edge_cases':
-        # debugging
-        train_img_dir = '../../../COSSY/Edge_cases'
-        train_json = '../../../COSSY/annotations/Edge_cases.json'
-        lr_SGD = 0.0001 / batch_size / subdivision
-        # Learning rate setup
-        def burnin_schedule(i):
-            return 1
     dataset = Dataset4YoloAngle(train_img_dir, train_json, initial_size, enable_aug,
                                 only_person=only_person, debug_mode=args.debug)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, 
                             num_workers=num_cpu, pin_memory=True, drop_last=False)
     dataiterator = iter(dataloader)
     
-    if args.model == 'ex':
-        from models.exact import YOLOv3
-        model = YOLOv3(backbone=args.backbone, img_norm=False)
-    if args.model == 'ex_LL1':
-        from models.exact import YOLOv3
-        model = YOLOv3(backbone=args.backbone, loss_angle='LL1', img_norm=False)
-    if args.model == 'ex_LL2':
-        from models.exact import YOLOv3
-        model = YOLOv3(backbone=args.backbone, loss_angle='LL2', img_norm=False)
-    if args.model == 'ex_90L1':
-        from models.exact import YOLOv3
-        model = YOLOv3(backbone=args.backbone, loss_angle='L1', angran=180)
-    if args.model == 'ex_90L2':
-        from models.exact import YOLOv3
-        model = YOLOv3(backbone=args.backbone, loss_angle='L2', angran=180)
-    if args.model == 'ex_90pL1':
-        from models.exact import YOLOv3
-        model = YOLOv3(backbone=args.backbone, loss_angle='period_L1', angran=180)
-    if args.model == 'ex_90pL2':
-        from models.exact import YOLOv3
-        model = YOLOv3(backbone=args.backbone, loss_angle='period_L2', angran=180)
-    elif args.model == 'exact_L1':
-        from models.exact import YOLOv3
-        model = YOLOv3(backbone=args.backbone, img_norm=False, loss_angle='L1')
-    elif args.model == 'exact_L2':
-        from models.exact import YOLOv3
-        model = YOLOv3(backbone=args.backbone, img_norm=False, loss_angle='L2')
-    elif args.model == 'ex_pL1':
-        from models.exact import YOLOv3
-        model = YOLOv3(backbone=args.backbone, img_norm=False,
+    if args.model == 'rapid_pL1':
+        from models.rapid import RAPiD
+        model = RAPiD(backbone=args.backbone, img_norm=False,
                        loss_angle='period_L1')
-    elif args.model == 'exact_45':
-        raise NotImplementedError()
-        from models.exact_45 import YOLOv3
-        model = YOLOv3()
-    elif args.model == 'Hitachi80':
-        from models.Hitachi import YOLOv3
-        model = YOLOv3(anchor_size='COCO', only_person=False)
-    elif args.model == 'Hitachi1':
-        from models.Hitachi import YOLOv3
-        model = YOLOv3(anchor_size='COCO', only_person=True)
-    # elif args.model == 'alpha_fc':
-    #     raise Exception('Deprecated')
-    #     from models.alphaFC import YOLOv3
-    #     model = YOLOv3(anchors=anchors, indices=indices)
+    elif args.model == 'rapid_pL2':
+        from models.rapid import RAPiD
+        model = RAPiD(backbone=args.backbone, img_norm=False,
+                       loss_angle='period_L2')
     
     model = model.cuda() if args.cuda else model
 
@@ -369,12 +223,10 @@ if __name__ == '__main__':
     start_time = timer.tic()
     for iter_i in range(start_iter, 500000):
         # evaluation
-        if args.skip_first_eval and iter_i == 0:
-            continue
         if iter_i % args.eval_interval == 0 and (args.dataset != 'COCO' or iter_i > 0):
             with timer.contexttimer() as t0:
                 model.eval()
-                model_eval = api.yoloangle(conf_thres=0.005, model=model)
+                model_eval = api.Detector(conf_thres=0.005, model=model)
                 dts = model_eval.detect_imgSeq(val_img_dir, input_size=target_size)
                 str_0 = val_set.evaluate_dtList(dts, metric='AP')
             s = f'\nCurrent time: [ {timer.now()} ], iteration: [ {iter_i} ]\n\n'
