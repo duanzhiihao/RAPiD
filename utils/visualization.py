@@ -45,14 +45,24 @@ def draw_dt_on_np(im, detections, print_dt=False, color=(255,0,0),
         if kwargs.get('show_angle', False):
             cv2.putText(im, f'{int(a)}', (x,y), font, 1*text_size,
                         (255,255,255), font_bold, cv2.LINE_AA)
+    if kwargs.get('show_count', True):
+        caption_w = im.shape[0] // 4
+        caption_h = im.shape[0] // 16
+        start = (im.shape[1] - caption_w, 10)
+        end = (im.shape[1], 10+caption_h)
+        cv2.rectangle(im, start, end, color=(0,0,0), thickness=-1)
+        cv2.putText(im, f'Count: {len(detections)}',
+                    (im.shape[1] - caption_w + im.shape[0]//50, caption_h-im.shape[0]//200),
+                    font, 1.4*text_size,
+                    (255,255,255), font_bold*2, cv2.LINE_AA)
 
 
-def draw_anns_on_np(im, annotations, draw_angle=False, color=(0,0,255)):
+def draw_anns_on_np(im, annotations, draw_angle=False, color=(0,0,255), line_width=None):
     '''
     im: image numpy array, shape(h,w,3), RGB
     annotations: list of dict, json format
     '''
-    line_width = im.shape[0] // 500
+    line_width = line_width or im.shape[0] // 500
     for ann in annotations:
         x, y, w, h, a = ann['bbox']
         draw_xywha(im, x, y, w, h, a, color=color, linewidth=line_width)
