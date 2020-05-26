@@ -24,8 +24,6 @@ class MWeval():
 
         if iou_method == 'mask':
             self.iou_func = iou_mask
-        elif iou_method == 'geometry':
-            self.iou_func = iou_geometry
         elif iou_method == 'rle':
             self.iou_func = iou_rle
         else:

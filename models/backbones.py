@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -186,28 +185,3 @@ class YOLOBranch(nn.Module):
         detection = self.to_box(x)
 
         return detection, feature
-
-
-def _xy2radius(prediction, return_degree=True):
-    '''
-    use x,y coordinates in normalized image to calculate reference angle \
-    regarding to the image center.
-
-    Args:
-        prediction: torch.tensor, the last dimension should be [x,y,something]
-    
-    Return:
-        reference: torch.tensor, same shape with xs and ys, degree
-    '''
-    assert return_degree == True
-    assert prediction.shape[-1] >= 2
-    xs = prediction[..., 0] - 0.5
-    ys = -(prediction[..., 1] - 0.5)
-    reference = torch.atan(xs/ys) / np.pi * 180 # -90 ~ 90
-
-    if torch.isnan(reference).any():
-        print('warning: some of reference angle is nan')
-        reference[torch.isnan(reference)] = 0
-    assert not torch.isinf(reference).any()
-
-    return reference

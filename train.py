@@ -179,7 +179,6 @@ if __name__ == '__main__':
     model = model.cuda() if args.cuda else model
 
     start_iter = -1
-    # model.apply(weights_init_normal)
     if args.checkpoint:
         print("loading ckpt...", args.checkpoint)
         weights_path = os.path.join('./weights/', args.checkpoint)

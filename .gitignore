@@ -3,6 +3,7 @@ script_*
 
 logs/
 results/
+deprecated/
 
 .vscode
 .DS_Store

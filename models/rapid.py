@@ -7,27 +7,16 @@ import torchvision.transforms.functional as tvf
 from utils.iou_mask import iou_mask, iou_rle
 import models.backbones
 import models.losses
-# from models.losses import bcel2bce, period_L1, period_L2, FocalBCE
 
 
 class RAPiD(nn.Module):
-    def __init__(self, backbone='dark53', img_norm=False, anchor_size=1024, **kwargs):
+    def __init__(self, backbone='dark53', **kwargs):
         super().__init__()
-        self.input_normalization = img_norm
-        if anchor_size == 1024:
-            anchors = [
-                [18.7807, 33.4659], [28.8912, 61.7536], [48.6849, 68.3897],
-                [45.0668, 101.4673], [63.0952, 113.5382], [81.3909, 134.4554],
-                [91.7364, 144.9949], [137.5189, 178.4791], [194.4429, 250.7985]
-            ]
-        elif anchor_size == 608:
-            anchors = [
-                [10.7, 21.888], [21.6448, 40.0672], [32.9536, 66.9408],
-                [39.0944, 88.2208], [46.0256, 108.3456], [69.1296, 103.36],
-                [59.4016, 124.5792], [93.2064, 125.0656], [78.128, 158.4448]
-            ]
-        else:
-            raise Exception('Invalid anchor box size')
+        anchors = [
+            [18.7807, 33.4659], [28.8912, 61.7536], [48.6849, 68.3897],
+            [45.0668, 101.4673], [63.0952, 113.5382], [81.3909, 134.4554],
+            [91.7364, 144.9949], [137.5189, 178.4791], [194.4429, 250.7985]
+        ]
         indices = [[6,7,8], [3,4,5], [0,1,2]]
         self.anchors_all = torch.Tensor(anchors).float()
         assert self.anchors_all.shape[1] == 2 and len(indices) == 3
@@ -75,11 +64,6 @@ class RAPiD(nn.Module):
         torch.cuda.reset_max_memory_allocated()
         assert x.dim() == 4
         self.img_size = x.shape[2]
-        # normalization
-        if self.input_normalization:
-            for i in range(x.shape[0]):
-                x[i] = tvf.normalize(x[i], [0.485,0.456,0.406], [0.229,0.224,0.225],
-                                    inplace=True)
 
         # go through backbone
         small, medium, large = self.backbone(x)
@@ -107,22 +91,6 @@ class RAPiD(nn.Module):
                             '\n' + self.pred_S.loss_str
             loss = loss_L + loss_M + loss_S
             return loss
-
-    def train_mode(self, **kwargs):
-        self.train()
-    
-    # def optim_init(self, optim='SGD', lr, weight_decay=0):
-    #     '''
-    #     initialize the optimizer
-    #     '''
-    #     params = []
-    #     # set weight decay only on conv.weight
-    #     for key, value in model.named_parameters():
-    #         if 'conv.weight' in key:
-    #             params += [{'params':value, 'weight_decay':decay_SGD}]
-    #         else:
-    #             params += [{'params':value, 'weight_decay':0.0}]
-    #     self.
 
 
 class PredLayer(nn.Module):
@@ -169,18 +137,20 @@ class PredLayer(nn.Module):
     def forward(self, raw, img_size, labels=None):
         """
         Args:
-        
-        Returns:
+            raw: tensor with shape [batchsize, anchor_num*6, size, size]
+            img_size: int, image resolution
+            labels: ground truth annotations        
         """
-        # assert raw.dim() == 4
-        # assert raw.shape[2] == raw.shape[3]
-        # assert img_size > 0 and isinstance(img_size, int)
+        assert raw.dim() == 4
+        # TODO: for now we require the input to be a square though it's not necessary.
+        assert raw.shape[2] == raw.shape[3]
+        assert img_size > 0 and isinstance(img_size, int)
 
-        # raw shape(BatchSize, anchor_num*6, FeatureSize, FeatureSize)
+        # raw 
         device = raw.device
         nB = raw.shape[0] # batch size
         nA = self.num_anchors # number of anchors
-        nG = raw.shape[2] # grid size, or resolution
+        nG = raw.shape[2] # grid size, i.e., feature resolution
         nCH = 6 # number of channels, 6=(x,y,w,h,angle,conf)
 
         raw = raw.view(nB, nA, nCH, nG, nG)
@@ -199,7 +169,8 @@ class PredLayer(nn.Module):
             angle = torch.sigmoid(raw[..., 4])
         # logistic activation for objectness confidence
         conf = torch.sigmoid(raw[..., 5])
-        # now xy are the offsets, wh are the scale, and angle are rotation from 0
+        # now xy is the offsets, wh are is scaling factor,
+        # and angle is normalized between 0~1.
 
         # calculate pred - xywh obj cls
         x_shift = torch.arange(nG, dtype=torch.float, device=device
@@ -207,7 +178,7 @@ class PredLayer(nn.Module):
         y_shift = torch.arange(nG, dtype=torch.float, device=device
                                 ).repeat(nG, 1).t().view(1,1,nG,nG)
 
-        # make sure the anchors are not normalized
+        # NOTE: anchors are not normalized
         anchors = self.anchors.clone().to(device=device)
         anch_w = anchors[:,0].view(1, nA, 1, 1) # absolute
         anch_h = anchors[:,1].view(1, nA, 1, 1) # absolute
@@ -222,11 +193,6 @@ class PredLayer(nn.Module):
         else:
             pred_final[..., 4] = angle*self.angle_range - self.angle_range/2 # degree
         pred_final[..., 5] = conf
-
-        # debug0 = angle[conf >= 0.1]
-        # debug1 = pred_final[conf >= 0.1]
-        # assert not torch.isinf(pred_final).any(), print(torch.isinf(pred_final).nonzero())
-        # assert not torch.isnan(pred_final).any(), print(torch.isnan(pred_final).nonzero())
 
         if labels is None:
             # inference, convert final predictions to absolute
@@ -247,7 +213,6 @@ class PredLayer(nn.Module):
         penalty_mask = torch.ones(nB, nA, nG, nG, dtype=torch.bool, device=device)
         target = torch.zeros(nB, nA, nG, nG, nCH, dtype=torch.float, device=device)
 
-        # labels = labels.cpu().data
         labels = labels.detach()
         nlabel = (labels[:,:,0:4].sum(dim=2) > 0).sum(dim=1)  # number of objects
         assert (labels[:,:,4].abs() <= 90).all()
@@ -315,17 +280,6 @@ class PredLayer(nn.Module):
                 to_be_ignored = (pred_best_iou > self.ignore_thre)
                 # set mask to zero (ignore) if the pred BB has a large IoU with any gt BB
                 penalty_mask[b,selected_idx] = ~to_be_ignored
-            # if torch.rand(1) > 0.99:
-            #     print('ignored num:', (penalty_mask==False).sum().cpu().item())
-
-            # pred_ious = iou_rle(pred_boxes[b].view(-1,5), gt_boxes, xywha=True,
-            #                     is_degree=True, img_size=img_size, normalized=True)
-            # pred_best_iou, _ = pred_ious.max(dim=1)
-            # pred_best_iou = (pred_best_iou > self.ignore_thre)
-            # pred_best_iou = pred_best_iou.view(pred_boxes[b].shape[:3])
-            # # set mask to zero (ignore) if pred matches a truth more than 0.7
-            # penalty_mask[b] = ~pred_best_iou
-            # mask one -> give penalty
 
             penalty_mask[b,best_n,truth_j,truth_i] = 1
             obj_mask[b,best_n,truth_j,truth_i] = 1
@@ -335,13 +289,7 @@ class PredLayer(nn.Module):
             target[b,best_n,truth_j,truth_i,3] = torch.log(th_all[b,:n][valid_mask]/norm_anch_wh[best_n,1] + 1e-16)
             # use radian when calculating loss
             target[b,best_n,truth_j,truth_i,4] = gt_boxes[:, 4][valid_mask] / 180 * np.pi
-            # hs = th_all[b,:n][valid_mask]
-            # ws = tw_all[b,:n][valid_mask]
-            # debug = th_all[b,:n][valid_mask]/tw_all[b,:n][valid_mask] - 1
-            # loss_scale[b,best_n,truth_j,truth_i,0] = th_all[b,:n][valid_mask]/tw_all[b,:n][valid_mask] - 1
             target[b,best_n,truth_j,truth_i,5] = 1 # objectness confidence
-            # smaller objects have higher losses
-            # tgt_scale[b,best_n,truth_j,truth_i,:] = torch.sqrt(2 - tw_all[b,:n][valid_mask]*th_all[b,:n][valid_mask]).unsqueeze(1)
 
         loss_xy = self.bce_loss(xy_offset[obj_mask], target[...,0:2][obj_mask])
         wh_pred = wh_scale[obj_mask]
@@ -353,9 +301,6 @@ class PredLayer(nn.Module):
             angle_pred = angle[obj_mask] * 2 * np.pi - np.pi
         elif self.angle_range == 180:
             angle_pred = angle[obj_mask] * np.pi - np.pi/2
-        # assert (angle_pred >= -np.pi).all() and (angle_pred <= np.pi).all()
-        # assert (target[..., 4][obj_mask] >= -0.5*np.pi).all()
-        # assert (target[..., 4][obj_mask] <= 0.5*np.pi).all()
         loss_angle = self.loss4angle(angle_pred, target[..., 4][obj_mask])
         loss_obj = self.loss4obj(conf[penalty_mask], target[...,5][penalty_mask])
 

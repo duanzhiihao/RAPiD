@@ -9,7 +9,7 @@ import cv2
 from PIL import Image
 
 
-class Video4YOLO():
+class Video4Detector():
     def __init__(self, video_path):
         self.video_path = video_path
     
@@ -43,7 +43,7 @@ class Video4YOLO():
         self.video.release()
 
 
-class Images4YOLO():
+class Images4Detector():
     def __init__(self, images_dir, gt_json=None, img_type='PIL'):
         '''
         img_type: str, one of 'PIL', 'cv2', 'plt'

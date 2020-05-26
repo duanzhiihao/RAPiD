@@ -1,10 +1,7 @@
-# API for all the YOLOangle variants.
 import numpy as np
-import cv2
 from PIL import Image
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from random import randint
 
 import torch
 import torchvision.transforms.functional as tvf
@@ -13,6 +10,16 @@ from utils import visualization, dataloader, utils
 
 
 class Detector():
+    '''
+    Wrapper of image object detectors.
+
+    Args:
+        model_name: str, currently only support 'rapid'
+        weights_path: str, path to the pre-trained network weights
+        model: torch.nn.Module, used only during training
+        conf_thres: float, confidence threshold
+        input_size: int, input resolution
+    '''
     def __init__(self, model_name='', weights_path=None, model=None, **kwargs):
         assert torch.cuda.is_available()
         if model:
@@ -35,18 +42,21 @@ class Detector():
         # post-processing settings
         self.conf_thres = kwargs.get('conf_thres', None)
         self.input_size = kwargs.get('input_size', None)
-        self.test_aug = kwargs.get('test_aug', None)
     
     def detect_one(self, **kwargs):
         '''
         Inference on a single image.
 
         Args:
-            img_path:str or pil_img:PIL.Image
-            test_aug: str, 'h','v','hv'
-            input_size: int, default: 1024
-            return_img: bool, default: False
-            visualize: bool, default: True
+            img_path: str or pil_img: PIL.Image
+
+            input_size: int, input resolution
+            conf_thres: float, confidence threshold
+
+            return_img: bool, if True, return am image with bbox visualizattion. \
+                default: False
+            visualize: bool, if True, plt.show the image with bbox visualization. \
+                default: False
         '''
         assert 'img_path' in kwargs or 'pil_img' in kwargs
         img = kwargs.get('pil_img', None) or Image.open(kwargs['img_path'])
@@ -67,18 +77,17 @@ class Detector():
         
     def detect_imgSeq(self, img_dir, **kwargs):
         '''
-        object detection in a sequence of images
+        Run on a sequence of images in a folder.
         
         Args:
             img_dir: str
-            test_aug: str, 'h','v','hv'
-            input_size: int, default: 1024
+            input_size: int, input resolution
+            conf_thres: float, confidence threshold
         '''
         gt_path = kwargs['gt_path'] if 'gt_path' in kwargs else None
 
-        ims = dataloader.Images4YOLO(img_dir, gt_path) # TODO
+        ims = dataloader.Images4Detector(img_dir, gt_path) # TODO
         dts = self._detect_iter(iter(ims), **kwargs)
-        # dts = self._detect_iter_seq_nms_causal(iter(ims), **kwargs)
         return dts
 
     def _detect_iter(self, iterator, **kwargs):
@@ -97,112 +106,54 @@ class Detector():
         return detection_json
     
     def _predict_pil(self, pil_img, **kwargs):
-        test_aug = kwargs.get('test_aug', self.test_aug)
+        '''
+        Args:
+            pil_img: PIL.Image.Image
+            input_size: int, input resolution
+            conf_thres: float, confidence threshold
+        '''
         input_size = kwargs.get('input_size', self.input_size)
         conf_thres = kwargs.get('conf_thres', self.conf_thres)
         assert isinstance(pil_img, Image.Image), 'input must be a PIL.Image'
+        assert input_size is not None, 'Please specify the input resolution'
+        assert conf_thres is not None, 'Please specify the confidence threshold'
 
         # pad to square
         input_img, _, pad_info = utils.rect_to_square(pil_img, None, input_size, 0)
         
         input_ori = tvf.to_tensor(input_img)
-        if not test_aug:
-            input_ = input_ori.unsqueeze(0)
-        elif test_aug == 'h':
-            raise Exception('Deprecated')
-            # horizontal flip
-            input_hflip = input_ori.flip(2)
-            input_ = torch.stack([input_ori, input_hflip], dim=0)
-        elif test_aug == 'hv':
-            # original, horizontal flip, vertical flip
-            to_cat = [input_ori]
-            to_cat.append(input_ori.flip(2)) # horizontal flip
-            to_cat.append(input_ori.flip(1)) # vertical flip
-            input_ = torch.stack(to_cat, dim=0)
-        elif test_aug == 'rotation':
-            # original, rotate 90, rotate 180, rotate270
-            to_cat = [input_ori]
-            to_cat.append(input_ori.rot90(-1,[1,2])) # rotate 90 degrees clockwise
-            to_cat.append(input_ori.rot90(2,[1,2])) # rotate 180 degrees clockwise
-            to_cat.append(input_ori.rot90(1,[1,2])) # rotate 270 degrees clockwise
-            input_ = torch.stack(to_cat, dim=0)
-        else:
-            raise Exception('Invalid test-time augmentation')
+        input_ = input_ori.unsqueeze(0)
         
         assert input_.dim() == 4
         input_ = input_.cuda()
         with torch.no_grad():
             dts = self.model(input_).cpu()
 
-        if not test_aug:
-            dts = dts.squeeze()        
-            if 'enable_post' in kwargs and kwargs['enable_post'] == False:
-                _, idx = torch.topk(dts[:,5], k=randint(95,105), sorted=False)
-                dts = dts[idx, :]
-                dts = utils.detection2original(dts, pad_info.squeeze())
-                return dts
-            # post-processing
-            dts = dts[dts[:,5] >= conf_thres]
-            if len(dts) > 1000:
-                _, idx = torch.topk(dts[:,5], k=1000)
-                dts = dts[idx, :]
-            if kwargs.get('debug', False):
-                np_img = np.array(input_img)
-                visualization.draw_dt_on_np(np_img, dts)
-                plt.imshow(np_img)
-                plt.show()
-            dts = utils.nms(dts, is_degree=True, nms_thres=0.45, img_size=input_size)
-            dts = utils.detection2original(dts, pad_info.squeeze())
-            if kwargs.get('debug', False):
-                np_img = np.array(pil_img)
-                visualization.draw_dt_on_np(np_img, dts)
-                plt.imshow(np_img)
-                plt.show()
-            return dts
-
-        dts_union = []
-        for i, fdt in enumerate(dts):
-            frames_dts = fdt[fdt[:,5] >= conf_thres]
-            if len(frames_dts) > 1000:
-                _, idx = torch.topk(frames_dts[:,5], k=1000)
-                frames_dts = frames_dts[idx, :]
-            frames_dts = utils.nms(frames_dts, is_degree=True, nms_thres=0.45)
-            dts_union.append(frames_dts)
-        
-        if test_aug == 'rotation':    
-            # frame is rotated by 90 degrees clockwise
-            x,y,w,h,a,_ = dts_union[1].clone().transpose(0,1)
-            dts_union[1][:,0] = y
-            dts_union[1][:,1] = input_size - x
-            dts_union[1][:,4] = a-90
-            # frame is rotated by 180 degrees clockwise
-            x,y,w,h,a,_ = dts_union[2].clone().transpose(0,1)
-            dts_union[2][:,0] = input_size - x
-            dts_union[2][:,1] = input_size - y
-            # frame is rotated by 270 degrees clockwise (= -90 degrees clockwise)
-            x,y,w,h,a,_ = dts_union[3].clone().transpose(0,1)
-            dts_union[3][:,0] = input_size - y
-            dts_union[3][:,1] = x
-            dts_union[3][:,4] = a+90
-            majority_num = 2
-        elif test_aug == 'hv':
-            # horizontal flipped
-            dts_union[1][:,0] = input_.shape[3] - dts_union[1][:,0]
-            dts_union[1][:,4] = -dts_union[1][:,0]
-            # vertical flipped
-            dts_union[2][:,1] = input_.shape[2] - dts_union[2][:,1]
-            dts_union[2][:,4] = -dts_union[2][:,4]
-            majority_num = 2
-        
-        # concatenate them together
-        dts_union = torch.cat(dts_union, dim=0)
-        dts_union = utils.nms(dts_union, is_degree=True, nms_thres=0.45,
-                              majority=majority_num)
-        dts_union = utils.detection2original(dts_union, pad_info.squeeze())
-        return dts_union
+        dts = dts.squeeze()
+        # post-processing
+        dts = dts[dts[:,5] >= conf_thres]
+        if len(dts) > 1000:
+            _, idx = torch.topk(dts[:,5], k=1000)
+            dts = dts[idx, :]
+        if kwargs.get('debug', False):
+            np_img = np.array(input_img)
+            visualization.draw_dt_on_np(np_img, dts)
+            plt.imshow(np_img)
+            plt.show()
+        dts = utils.nms(dts, is_degree=True, nms_thres=0.45, img_size=input_size)
+        dts = utils.detection2original(dts, pad_info.squeeze())
+        if kwargs.get('debug', False):
+            np_img = np.array(pil_img)
+            visualization.draw_dt_on_np(np_img, dts)
+            plt.imshow(np_img)
+            plt.show()
+        return dts
 
 
 def detect_once(model, pil_img, conf_thres, nms_thres=0.45, input_size=608):
+    '''
+    Run the model on the pil_img and return the detections.
+    '''
     ori_w, ori_h = pil_img.width, pil_img.height
     input_img, _, pad_info = utils.rect_to_square(pil_img, None, input_size, 0)
 
