@@ -41,11 +41,10 @@ TBD
 ## Training on COCO
 TBD
 
-## Fine-tuning on CEPDOF
+## Fine-tuning on fisheye image datasets
 TBD
 
 ## TODO
-- [ ] Upload network weights
 - [ ] Update README
 
 ## Citation
