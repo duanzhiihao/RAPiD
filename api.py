@@ -27,7 +27,7 @@ class Detector():
             return
         if model_name == 'rapid':
             from models.rapid import RAPiD
-            model = RAPiD(backbone='dark53', img_norm=False, anchor_size=1024)
+            model = RAPiD(backbone='dark53')
         else:
             raise NotImplementedError()
         total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
