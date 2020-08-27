@@ -61,7 +61,6 @@ class RAPiD(nn.Module):
         x: a batch of images, e.g. shape(8,3,608,608)
         labels: a batch of ground truth
         '''
-        torch.cuda.reset_max_memory_allocated()
         assert x.dim() == 4
         self.img_size = x.shape[2]
 
