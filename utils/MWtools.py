@@ -11,11 +11,11 @@ class MWeval():
     def __init__(self, gt_path, iou_method='rle'):
         """
         Args:
-        data_dir (str): dataset root directory
-        img_size (int): image size after preprocess. images are resized \
-            to squares whose shape is (img_size, img_size).
-        nmsthre (float):
-            IoU threshold of non-max supression ranging from 0 to 1.
+            data_dir (str): dataset root directory
+            img_size (int): image size after preprocess. images are resized \
+                to squares whose shape is (img_size, img_size).
+            nmsthre (float):
+                IoU threshold of non-max supression ranging from 0 to 1.
         """
         assert torch.__version__.startswith('1')
         self.maxDet = 100 # max number of detections per image
@@ -32,6 +32,9 @@ class MWeval():
         self._prepare(gt_path)
 
     def _prepare(self, json_path):
+        '''
+        Load and prepare the ground truth data
+        '''
         self.video_name = get_video_name(json_path)
         # load json file
         with open(json_path, 'r') as f:
@@ -51,8 +54,13 @@ class MWeval():
 
     def evaluate_dtList(self, dt_json, metric='AP', **kwargs):
         """
+        Args:
+            dt_json: list of dict
+            metric: str, could be 'AP', 'F', or 'counting'
+            debug (default: False): if True, plot the P-R curve
+        
         Returns:
-        eval_str
+            eval_str: str
         """
         self.dts = defaultdict(list)
         # load detections
@@ -88,6 +96,9 @@ class MWeval():
         return eval_str
 
     def _evaluateAll(self):
+        '''
+        Traverse all the images and determine the TP and FP in each image
+        '''
         tps = [] # list of tensors
         scores = [] # list of tensors
         num_gt = 0 # number of gts in the whole dataset
@@ -122,8 +133,12 @@ class MWeval():
 
     def _match(self, dts, gts):
         '''
-        dts: tensor, shape[N,6], rows [x,y,w,h,a,conf]
-        gts: tensor, shape[M,5], rows [x,y,w,h,a]
+        Match dts and gts in one image. This is a bipartite matching based a \
+            greedy algorithm. The algorithm is adapted from COCO.
+
+        Args:
+            dts: tensor, shape[N,6], rows [x,y,w,h,a,conf]
+            gts: tensor, shape[M,5], rows [x,y,w,h,a]
         '''
         assert dts.dim() == 2 and dts.shape[1] == 6
         assert gts.dim() == 2 and gts.shape[1] == 5
@@ -165,7 +180,7 @@ class MWeval():
 
     def _accumulate(self, **kwargs):
         '''
-        accumulate stats in all images to calculate AP
+        Accumulate the TP/FP in all images to create the P-R curve
         '''
         print('accumulating results')
         num_gt = self.num_gt
@@ -229,7 +244,7 @@ class MWeval():
 
     def _summary(self):
         '''
-        P-R curve to string
+        P-R curve to string for AP
         '''
         if not torch.is_tensor(self.PRcurve):
             raise Exception('Please run accumulate first')
@@ -258,6 +273,9 @@ class MWeval():
         return ap.item()
     
     def _summaryTPFP(self):
+        '''
+        P-R curve to string for TP/FP/F-score
+        '''
         print('computing TP, FP, FN, Precision, Recall, and F1 score')
         tps = torch.cat(self.tps, dim=1)
         num_dt = tps.shape[1]
@@ -278,6 +296,9 @@ class MWeval():
         return s
     
     def _summaryCounting(self):
+        '''
+        P-R curve to string for object (people) counting
+        '''
         error = 0
         overcounts = 0
         undercounts = 0
@@ -313,6 +334,9 @@ class MWeval():
         return s
 
     def _visualize(self, img_id, img_dir, detections, labels):
+        '''
+        For debugging
+        '''
         import os
         import matplotlib.pyplot as plt
         import matplotlib.patches as patches
@@ -373,8 +397,12 @@ def get_video_name(s):
 
 def match_dtgt(dts, gts, iou_thres=0.5):
     '''
-    dts: tensor, shape[N,6], rows [x,y,w,h,a,conf]
-    gts: tensor, shape[M,5], rows [x,y,w,h,a]
+    Match dts and gts in one image given a overlapping (IoU) threshold.
+    This funtion is usually useless.
+
+    Args:
+        dts: tensor, shape[N,6], rows [x,y,w,h,a,conf]
+        gts: tensor, shape[M,5], rows [x,y,w,h,a]
     '''
     assert dts.dim() == 2 and dts.shape[1] == 6
     assert gts.dim() == 2 and gts.shape[1] == 5
