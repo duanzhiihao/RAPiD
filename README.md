@@ -4,6 +4,9 @@ This repository is the official PyTorch implementation of the following paper. O
 **RAPiD: Rotation-Aware People Detection in Overhead Fisheye Images** <br />
 [[arXiv paper](https://arxiv.org/abs/2005.11623)] [[Project page](http://vip.bu.edu/projects/vsns/cossy/fisheye/rapid/)]
 
+## Updates
+- [Oct 15, 2020]: Add instructions of evaulation
+
 ## Installation
 **Requirements**:
 The code should be able to work as long as you have the following packages:
@@ -42,12 +45,16 @@ Below is the cross-validatation performance on three datasets: [Mirror Worlds](h
 <img src="https://github.com/duanzhiihao/RAPiD/blob/master/readme_img/exhibition_rapid608_1024_0.3.jpg" width="500" height="500">
 </p>
 
-## Evaluation on CEPDOF
-TBD
+## Evaluation
+Here is an example of evaluting RAPiD on a video from CEPDOF in terms of the AP metric.
+
+0. Download the [pre-trained network weights](https://github.com/duanzhiihao/RAPiD/releases/download/v0.1/pL1_MWHB1024_Mar11_4000.ckpt), which is trained on COCO, MW-R and HABBOF, and place it under the RAPiD/weights folder.
+1. Download the [CEPDOF](http://vip.bu.edu/projects/vsns/cossy/datasets/cepdof/) dataset and extract it to `path/to/cepdof`;
+2. `python evaluate.py --imgs_path path/to/cepdof/Lunch1 --gt_path path/to/cepdof/annotations/Lunch1.json --metric AP`
 
 ## Training on COCO
 0. Download [the Darknet-53 weights](https://github.com/duanzhiihao/RAPiD/releases/download/v0.1/dark53_imgnet.pth), which is pre-trained on ImageNet. This is identical to the one provided by the official YOLOv3 author. The only diffence is that I converted it to PyTorch format.
-1. Put the file in the `weights/` folder;
+1. Place the file under the RAPiD/weights folder;
 
 TBD
 
