@@ -16,7 +16,6 @@ import api
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    # parser.add_argument('--SCC', action='store_true')
     parser.add_argument('--model', type=str, default='rapid_pL1')
     parser.add_argument('--backbone', type=str, default='dark53')
     parser.add_argument('--dataset', type=str, default='H1MW')
@@ -32,15 +31,13 @@ def parse_args():
     parser.add_argument('--checkpoint_interval', type=int, default=2000)
     
     parser.add_argument('--debug', action='store_true') # default=True)
-    parser.add_argument('--cuda', type=bool, default=True)
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = parse_args()
-    assert args.cuda and torch.cuda.is_available() # Currently do not support CPU
+    assert torch.cuda.is_available() # Currently do not support CPU training
     # -------------------------- settings ---------------------------
-    # assert not args.adversarial
     target_size = 1024 if args.high_resolution else 608
     initial_size = 1088 if args.high_resolution else 672
     job_name = f'{args.model}_{args.backbone}_{args.dataset}{target_size}'
@@ -51,7 +48,7 @@ if __name__ == '__main__':
     num_cpu = 0 if batch_size == 1 else 4
     subdivision = 128 // batch_size
     enable_aug = True
-    multiscale = True # if (args.model != 'alpha_fc' and enable_aug) else False
+    multiscale = True
     multiscale_interval = 10
     # SGD optimizer
     decay_SGD = 0.0005 * batch_size * subdivision
@@ -177,7 +174,7 @@ if __name__ == '__main__':
         model = RAPiD(backbone=args.backbone, img_norm=False,
                        loss_angle='period_L2')
     
-    model = model.cuda() if args.cuda else model
+    model = model.cuda()
 
     start_iter = -1
     if args.checkpoint:
@@ -240,7 +237,6 @@ if __name__ == '__main__':
             model.train()
 
         # subdivision loop
-        # loop_times = subdivision if not args.adversarial else subdivision//2
         optimizer.zero_grad()
         for inner_iter_i in range(subdivision):
             try:
@@ -249,16 +245,10 @@ if __name__ == '__main__':
                 dataiterator = iter(dataloader)
                 imgs, targets, cats, _, _ = next(dataiterator)  # load a batch
             # visualization.imshow_tensor(imgs)
-            imgs = imgs.cuda() if args.cuda else imgs
+            imgs = imgs.cuda()
             torch.cuda.reset_max_memory_allocated()
             loss = model(imgs, targets, labels_cats=cats)
             loss.backward()
-            # if args.adversarial:
-            #     imgs = imgs + imgs.grad*0.05
-            #     imgs = imgs.detach()
-            #     # visualization.imshow_tensor(imgs)
-            #     loss = model(imgs, targets)
-            #     loss.backward()
         optimizer.step()
         scheduler.step()
 
