@@ -7,6 +7,9 @@ from .iou_mask import iou_mask, iou_rle
 
 class MWeval():
     """
+    Custom evaluation tools for rotated bounding boxes.
+    The class name 'MWeval' might be misleading; it doesn't have any relationship with \
+        the Mirror Worlds (MW) dataset.
     """
     def __init__(self, gt_path, iou_method='rle'):
         """
@@ -260,8 +263,8 @@ class MWeval():
 
         l = [f'{self._getAP(iouT):.3f}' for iouT in self.iou_thres]
         l = [float(s) for s in l]
-        s += f'\n AP for different IoU: {l}'
-        s += f'\n Best confidence threshold: {self.best_thres}'
+        s += f'\n AP for IoU=0.5, 0.55, 0.6, ..., 0.95: {l}'
+        s += f'\n Best confidence thresholds: {self.best_thres}'
         return s
 
     def _getAP(self, iouThr=None):
