@@ -46,6 +46,9 @@ Below is the cross-validatation performance on three datasets: [Mirror Worlds](h
 TBD
 
 ## Training on COCO
+0. Download [the Darknet-53 weights](https://github.com/duanzhiihao/RAPiD/releases/download/v0.1/dark53_imgnet.pth), which is pre-trained on ImageNet. This is identical to the one provided by the official YOLOv3 author. The only diffence is that I converted it to PyTorch format.
+1. Put the file in the `weights/` folder;
+
 TBD
 
 ## Fine-tuning on fisheye image datasets
