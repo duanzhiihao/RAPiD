@@ -46,11 +46,12 @@ Below is the cross-validatation performance on three datasets: [Mirror Worlds](h
 </p>
 
 ## Evaluation
-Here is an example of evaluting RAPiD on a video from CEPDOF in terms of the AP metric.
+Here is a minimum example of evaluting RAPiD on a single image in terms of the AP metric.
 
-0. Download the [pre-trained network weights](https://github.com/duanzhiihao/RAPiD/releases/download/v0.1/pL1_MWHB1024_Mar11_4000.ckpt), which is trained on COCO, MW-R and HABBOF, and place it under the RAPiD/weights folder.
-1. Download the [CEPDOF](http://vip.bu.edu/projects/vsns/cossy/datasets/cepdof/) dataset and extract it to `path/to/cepdof`;
-2. `python evaluate.py --imgs_path path/to/cepdof/Lunch1 --gt_path path/to/cepdof/annotations/Lunch1.json --metric AP`
+0. Clone repository. Download the [pre-trained network weights](https://github.com/duanzhiihao/RAPiD/releases/download/v0.1/pL1_MWHB1024_Mar11_4000.ckpt), which is trained on COCO, MW-R and HABBOF, and place it under the RAPiD/weights folder.
+1. `python evaluate.py --metric AP`
+
+The same evaluation process holds for published fisheye datasets like CEPDOF. For example, `python evaluate.py --imgs_path path/to/cepdof/Lunch1 --gt_path path/to/cepdof/annotations/Lunch1.json --metric AP`
 
 ## Training on COCO
 0. Download [the Darknet-53 weights](https://github.com/duanzhiihao/RAPiD/releases/download/v0.1/dark53_imgnet.pth), which is pre-trained on ImageNet. This is identical to the one provided by the official YOLOv3 author. The only diffence is that I converted it to the PyTorch format.
