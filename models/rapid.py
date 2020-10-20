@@ -31,6 +31,9 @@ class RAPiD(nn.Module):
             if os.path.exists(backbone_imgnet_path):
                 pretrained = torch.load(backbone_imgnet_path)
                 self.load_state_dict(pretrained)
+            else:
+                print('Warning: no ImageNet-pretrained weights found.',
+                      'Please check https://github.com/duanzhiihao/RAPiD for it.')
         elif backbone == 'res34':
             self.backbone = models.backbones.resnet34()
         elif backbone == 'res50':

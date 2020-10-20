@@ -18,7 +18,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='rapid_pL1')
     parser.add_argument('--backbone', type=str, default='dark53')
-    parser.add_argument('--dataset', type=str, default='H1MW')
+    parser.add_argument('--dataset', type=str, default='COCO')
     parser.add_argument('--batch_size', type=int, default=1)
 
     parser.add_argument('--high_resolution', action='store_true')
@@ -56,11 +56,11 @@ if __name__ == '__main__':
     # dataset setting
     print('initialing dataloader...')
     if args.dataset == 'COCO':
-        train_img_dir = '../../../COCO/train2017'
+        train_img_dir = '../Datasets/COCO/train2017'
         assert 'COCO' in train_img_dir # issue #11
-        train_json = '../../../COCO/annotations/instances_train2017.json'
-        val_img_dir = '../../../COSSY/valJan/'
-        val_json = '../../../COSSY/annotations/valJan.json'
+        train_json = '../Datasets/COCO/annotations/instances_train2017.json'
+        val_img_dir = './images/tiny_val/one'
+        val_json = './images/tiny_val/one.json'
         lr_SGD = 0.001 / batch_size / subdivision
         # Learning rate setup
         def burnin_schedule(i):
@@ -81,8 +81,8 @@ if __name__ == '__main__':
     elif args.dataset == 'MW':
         train_img_dir = '../../../MW18Mar/whole'
         train_json = '../../../MW18Mar/annotations/no19_nosmall.json'
-        val_img_dir = '../../../COSSY/valJan/'
-        val_json = '../../../COSSY/annotations/valJan.json'
+        val_img_dir = './images/tiny_val/one'
+        val_json = './images/tiny_val/one.json'
         lr_SGD = 0.0001 / batch_size / subdivision
         # Learning rate setup
         def burnin_schedule(i):
@@ -96,7 +96,7 @@ if __name__ == '__main__':
             else:
                 factor = 0.1
             return factor
-    elif args.dataset == 'H1H2':
+    elif args.dataset == 'HBCP':
         videos = ['Meeting1', 'Meeting2', 'Lab2',
                   'Lunch1', 'Lunch2', 'Lunch3', 'Edge_cases', 'IRill', 'Activity']
         # if args.high_resolution:
@@ -118,7 +118,7 @@ if __name__ == '__main__':
             else:
                 factor = 0.1
             return factor
-    elif args.dataset == 'H1MW':
+    elif args.dataset == 'HBMW':
         videos = ['Meeting1', 'Meeting2', 'Lab2', 'MW']
         train_img_dir = [f'../../../COSSY/{s}/' for s in videos]
         train_json = [f'../../../COSSY/annotations/{s}.json' for s in videos]
@@ -137,7 +137,7 @@ if __name__ == '__main__':
             else:
                 factor = 0.1
             return factor
-    elif args.dataset == 'H2MW':
+    elif args.dataset == 'CPMW':
         videos = ['Lunch1', 'Lunch2', 'Edge_cases', 'IRill', 'Activity',
                   'MW']
         # if args.high_resolution:
@@ -246,7 +246,6 @@ if __name__ == '__main__':
                 imgs, targets, cats, _, _ = next(dataiterator)  # load a batch
             # visualization.imshow_tensor(imgs)
             imgs = imgs.cuda()
-            torch.cuda.reset_max_memory_allocated()
             loss = model(imgs, targets, labels_cats=cats)
             loss.backward()
         optimizer.step()
@@ -265,7 +264,7 @@ if __name__ == '__main__':
             print(model.loss_str)
             max_cuda = torch.cuda.max_memory_allocated(0) / 1024 / 1024 / 1024
             print(f'Max GPU memory usage: {max_cuda} GigaBytes')
-            torch.cuda.reset_max_memory_allocated(0)
+            torch.cuda.reset_peak_memory_stats(0)
 
         # random resizing
         if multiscale and iter_i > 0 and (iter_i % multiscale_interval == 0):
