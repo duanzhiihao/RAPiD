@@ -181,7 +181,7 @@ if __name__ == '__main__':
         print("loading ckpt...", args.checkpoint)
         weights_path = os.path.join('./weights/', args.checkpoint)
         state = torch.load(weights_path)
-        model.load_state_dict(state['model_state_dict'])
+        model.load_state_dict(state['model'])
         start_iter = state['iter']
 
     val_set = MWtools.MWeval(val_json, iou_method='rle')
@@ -282,8 +282,8 @@ if __name__ == '__main__':
         if iter_i > 0 and (iter_i % args.checkpoint_interval == 0):
             state_dict = {
                 'iter': iter_i,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
+                'model': model.state_dict(),
+                'optimizer': optimizer.state_dict(),
             }
             save_path = os.path.join('./weights', f'{job_name}_{today}_{iter_i}.ckpt')
             torch.save(state_dict, save_path)
