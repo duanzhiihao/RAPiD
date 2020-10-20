@@ -42,7 +42,7 @@ Below is the cross-validatation performance on three datasets: [Mirror Worlds](h
 2. Directly run `python example.py`. Alternatively, `demo.ipynb` gives an example using jupyter notebook.
 
 <p align="center">
-<img src="https://github.com/duanzhiihao/RAPiD/blob/master/readme_img/exhibition_rapid608_1024_0.3.jpg" width="500" height="500">
+<img src="https://github.com/duanzhiihao/RAPiD/blob/master/images/readme/exhibition_rapid608_1024_0.3.jpg?raw=true" width="500" height="500">
 </p>
 
 ## Evaluation
