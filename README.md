@@ -5,6 +5,7 @@ This repository is the official PyTorch implementation of the following paper. O
 [[arXiv paper](https://arxiv.org/abs/2005.11623)] [[Project page](http://vip.bu.edu/projects/vsns/cossy/fisheye/rapid/)]
 
 ## Updates
+- [Oct 15, 2020]: Add instructions of training on COCO
 - [Oct 15, 2020]: Add instructions of evaulation
 
 ## Installation
@@ -56,8 +57,18 @@ The same evaluation process holds for published fisheye datasets like CEPDOF. Fo
 ## Training on COCO
 0. Download [the Darknet-53 weights](https://github.com/duanzhiihao/RAPiD/releases/download/v0.1/dark53_imgnet.pth), which is pre-trained on ImageNet. This is identical to the one provided by the official YOLOv3 author. The only diffence is that I converted it to the PyTorch format.
 1. Place the weights file under the RAPiD/weights folder;
+2. Download the COCO dataset and put it at `path/to/COCO`
+3. Modify line 59-61 in train.py to the following code snippet. Note that there must be a `'COCO'` in the `path/to/COCO`. Modify the validation set path too if you like.
+```
+if args.dataset == 'COCO':
+    train_img_dir = 'path/to/COCO/train2017'
+    assert 'COCO' in train_img_dir # issue #11
+    train_json = 'path/to/COCO/annotations/instances_train2017.json'
+```
 
-TBD
+4. `python train.py --model rapid_L1 --dataset COCO --batch_size 8` should work. Try to set the largest possible batch size that can fit in the GPU memory.
+
+TBD: we will release the weights that are pre-trained on COCO.
 
 ## Fine-tuning on fisheye image datasets
 TBD
