@@ -119,11 +119,20 @@ if __name__ == '__main__':
                 factor = 0.1
             return factor
     elif args.dataset == 'HBMW':
-        videos = ['Meeting1', 'Meeting2', 'Lab2', 'MW']
-        train_img_dir = [f'../../../COSSY/{s}/' for s in videos]
-        train_json = [f'../../../COSSY/annotations/{s}.json' for s in videos]
-        val_img_dir = '../../../COSSY/Lab1/'
-        val_json = '../../../COSSY/annotations/Lab1.json'
+        train_img_dir = [
+            '../Datasets/fisheye/HABBOF/Meeting1',
+            '../Datasets/fisheye/HABBOF/Meeting2',
+            '../Datasets/fisheye/HABBOF/Lab2',
+            '../Datasets/fisheye/MW-R'
+        ]
+        train_json = [
+            '../Datasets/fisheye/annotations/Meeting1.json',
+            '../Datasets/fisheye/annotations/Meeting2.json',
+            '../Datasets/fisheye/annotations/Lab2.json',
+            '../Datasets/fisheye/annotations/MW-R.json'
+        ]
+        val_img_dir = '../Datasets/fisheye/HABBOF/Lab1/'
+        val_json = '../Datasets/fisheye/annotations/Lab1.json'
         lr_SGD = 0.0001 / batch_size / subdivision
         # Learning rate setup
         def burnin_schedule(i):
@@ -198,11 +207,10 @@ if __name__ == '__main__':
         else:
             params += [{'params':value, 'weight_decay':0.0}]
 
-    if args.dataset in {'COCO', 'COCOTHH1MW'}:
+    if args.dataset == 'COCO':
         optimizer = torch.optim.SGD(params, lr=lr_SGD, momentum=0.9, dampening=0,
                                     weight_decay=decay_SGD)
-    elif args.dataset in {'MW', 'H1H2', 'H1MW', 'H2MW', 'THEODORE', 'THH1MW',
-                          'THH1H2', 'THH2MW'}:
+    elif args.dataset in {'MW', 'HBCP', 'HBMW', 'CPMW'}:
         assert args.checkpoint is not None
         optimizer = torch.optim.SGD(params, lr=lr_SGD)
     else:
