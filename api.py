@@ -22,6 +22,10 @@ class Detector():
     '''
     def __init__(self, model_name='', weights_path=None, model=None, **kwargs):
         assert torch.cuda.is_available()
+        # post-processing settings
+        self.conf_thres = kwargs.get('conf_thres', None)
+        self.input_size = kwargs.get('input_size', None)
+
         if model:
             self.model = model
             return
@@ -38,10 +42,6 @@ class Detector():
         print(f'Successfully loaded weights: {weights_path}')
         model.eval()
         self.model = model.cuda()
-        
-        # post-processing settings
-        self.conf_thres = kwargs.get('conf_thres', None)
-        self.input_size = kwargs.get('input_size', None)
     
     def detect_one(self, **kwargs):
         '''
