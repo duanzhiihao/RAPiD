@@ -1,0 +1,2188 @@
+{
+ "annotations": [
+  {
+   "area": 13974.77,
+   "bbox": [
+    510.48,
+    468.71,
+    100.69,
+    138.79,
+    -17.189999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 13624.91,
+   "bbox": [
+    751.13,
+    482.32,
+    87.62,
+    155.5,
+    -83.12
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 11703.09,
+   "bbox": [
+    632.06,
+    632.34,
+    81.64,
+    143.35,
+    -45.839999999999975
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 6233.49,
+   "bbox": [
+    648.08,
+    724.51,
+    46.27,
+    134.72,
+    -38.43000000000001
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 8877.31,
+   "bbox": [
+    613.62,
+    777.89,
+    57.6,
+    154.12,
+    -22.920000000000016
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 10809.39,
+   "bbox": [
+    350.0,
+    347.45,
+    80.23,
+    134.73,
+    -40.110000000000014
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 9946.92,
+   "bbox": [
+    292.64,
+    397.11,
+    61.99,
+    160.46,
+    -63.02999999999997
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 4990.52,
+   "bbox": [
+    266.54,
+    270.97,
+    46.29,
+    107.81,
+    -45.839999999999975
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 6145.32,
+   "bbox": [
+    227.38,
+    281.41,
+    52.43,
+    117.21,
+    -40.110000000000014
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 4489.08,
+   "bbox": [
+    175.27,
+    382.16,
+    40.16,
+    111.78,
+    -68.75
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 3923.48,
+   "bbox": [
+    145.08,
+    405.63,
+    40.7,
+    96.4,
+    -74.48000000000002
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 4088.45,
+   "bbox": [
+    157.27,
+    457.46,
+    40.86,
+    100.06,
+    -84.27
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 2968.97,
+   "bbox": [
+    215.87,
+    476.98,
+    26.53,
+    111.91,
+    88.85000000000002
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 2526.47,
+   "bbox": [
+    144.74,
+    308.52,
+    34.16,
+    73.96,
+    -57.30000000000001
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 3189.09,
+   "bbox": [
+    152.93,
+    277.11,
+    48.89,
+    65.23,
+    -63.02999999999997
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 2403.22,
+   "bbox": [
+    217.56,
+    209.42,
+    38.95,
+    61.7,
+    -45.839999999999975
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 3108.0,
+   "bbox": [
+    489.08,
+    102.13,
+    42.0,
+    74.0,
+    0.0
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 4265.52,
+   "bbox": [
+    584.17,
+    152.52,
+    53.81,
+    79.27,
+    47.56
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1532.63,
+   "bbox": [
+    697.16,
+    135.75,
+    30.85,
+    49.68,
+    45.84
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1434.08,
+   "bbox": [
+    316.2,
+    110.68,
+    26.06,
+    55.03,
+    -22.920000000000016
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1611.93,
+   "bbox": [
+    397.84,
+    83.75,
+    29.07,
+    55.45,
+    -17.189999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1675.66,
+   "bbox": [
+    422.68,
+    84.51,
+    29.96,
+    55.93,
+    -11.45999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1199.82,
+   "bbox": [
+    449.81,
+    73.91,
+    21.63,
+    55.47,
+    -11.45999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 439.46,
+   "bbox": [
+    380.12,
+    55.58,
+    16.41,
+    26.78,
+    -17.189999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 345.98,
+   "bbox": [
+    392.67,
+    49.47,
+    16.73,
+    20.68,
+    -11.45999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 539.36,
+   "bbox": [
+    504.0,
+    45.04,
+    15.67,
+    34.42,
+    -5.730000000000018
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 643.68,
+   "bbox": [
+    485.1,
+    61.43,
+    24.54,
+    26.23,
+    -84.27
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 760.0,
+   "bbox": [
+    523.92,
+    44.95,
+    20.0,
+    38.0,
+    0.0
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1159.96,
+   "bbox": [
+    587.55,
+    64.33,
+    27.14,
+    42.74,
+    5.73
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 447.5,
+   "bbox": [
+    485.77,
+    41.49,
+    17.9,
+    25.0,
+    5.73
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 389.22,
+   "bbox": [
+    629.05,
+    51.88,
+    15.18,
+    25.64,
+    11.46
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 283.53,
+   "bbox": [
+    691.14,
+    78.15,
+    13.75,
+    20.62,
+    -38.43000000000001
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 447.05,
+   "bbox": [
+    598.81,
+    43.59,
+    16.94,
+    26.39,
+    21.2
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 878.53,
+   "bbox": [
+    174.76,
+    218.93,
+    18.78,
+    46.78,
+    -45.839999999999975
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 869.3,
+   "bbox": [
+    152.35,
+    221.08,
+    23.04,
+    37.73,
+    -57.30000000000001
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 347.44,
+   "bbox": [
+    160.32,
+    194.85,
+    16.72,
+    20.78,
+    28.65
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 326.72,
+   "bbox": [
+    110.06,
+    251.21,
+    13.85,
+    23.59,
+    -57.30000000000001
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 299.45,
+   "bbox": [
+    101.21,
+    268.94,
+    11.67,
+    25.66,
+    -63.02999999999997
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 568.86,
+   "bbox": [
+    97.17,
+    284.55,
+    20.36,
+    27.94,
+    -63.02999999999997
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1171.58,
+   "bbox": [
+    87.88,
+    383.1,
+    21.14,
+    55.42,
+    -78.53999999999999
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1869.66,
+   "bbox": [
+    94.41,
+    403.72,
+    35.37,
+    52.86,
+    -84.27
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1667.14,
+   "bbox": [
+    89.56,
+    423.12,
+    27.86,
+    59.84,
+    -84.27
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1274.0,
+   "bbox": [
+    79.54,
+    462.04,
+    22.23,
+    57.31,
+    -84.27
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 246.68,
+   "bbox": [
+    42.62,
+    466.63,
+    12.67,
+    19.47,
+    84.26999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 3329.32,
+   "bbox": [
+    291.3,
+    780.01,
+    46.59,
+    71.46,
+    78.54000000000002
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 2566.42,
+   "bbox": [
+    246.25,
+    758.93,
+    34.26,
+    74.91,
+    61.35000000000002
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 7199.29,
+   "bbox": [
+    231.09,
+    765.2,
+    74.86,
+    96.17,
+    51.04000000000002
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 3086.48,
+   "bbox": [
+    151.2,
+    733.5,
+    44.08,
+    70.02,
+    61.35000000000002
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1378.49,
+   "bbox": [
+    192.25,
+    811.68,
+    30.23,
+    45.6,
+    38.43000000000001
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1703.33,
+   "bbox": [
+    225.86,
+    836.49,
+    28.46,
+    59.85,
+    44.160000000000025
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1610.94,
+   "bbox": [
+    247.43,
+    869.94,
+    31.55,
+    51.06,
+    32.69999999999999
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 3727.82,
+   "bbox": [
+    362.29,
+    864.56,
+    42.07,
+    88.61,
+    22.92
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1155.88,
+   "bbox": [
+    162.22,
+    808.45,
+    28.11,
+    41.12,
+    49.889999999999986
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 599.4,
+   "bbox": [
+    200.63,
+    866.34,
+    18.54,
+    32.33,
+    61.35000000000002
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 818.42,
+   "bbox": [
+    251.87,
+    895.72,
+    20.02,
+    40.88,
+    38.43000000000001
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1155.03,
+   "bbox": [
+    275.25,
+    906.46,
+    26.93,
+    42.89,
+    22.92
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1782.59,
+   "bbox": [
+    313.7,
+    901.2,
+    32.72,
+    54.48,
+    28.65
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1357.07,
+   "bbox": [
+    337.37,
+    922.13,
+    31.24,
+    43.44,
+    11.46
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 5652.97,
+   "bbox": [
+    440.08,
+    877.18,
+    54.99,
+    102.8,
+    17.19
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 2684.0,
+   "bbox": [
+    448.0,
+    942.45,
+    44.0,
+    61.0,
+    0.0
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 4592.89,
+   "bbox": [
+    544.51,
+    877.39,
+    49.61,
+    92.58,
+    -11.45999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1215.0,
+   "bbox": [
+    526.5,
+    959.45,
+    27.0,
+    45.0,
+    -5.730000000000018
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 3372.07,
+   "bbox": [
+    696.41,
+    886.49,
+    44.61,
+    75.59,
+    -40.110000000000014
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 2179.96,
+   "bbox": [
+    729.9,
+    861.85,
+    29.14,
+    74.81,
+    -34.379999999999995
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 3512.51,
+   "bbox": [
+    812.67,
+    695.56,
+    43.13,
+    81.44,
+    -84.27
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 2747.92,
+   "bbox": [
+    815.31,
+    738.68,
+    48.61,
+    56.53,
+    0.0
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1303.38,
+   "bbox": [
+    842.78,
+    755.85,
+    30.29,
+    43.03,
+    5.73
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1624.57,
+   "bbox": [
+    873.0,
+    759.27,
+    31.49,
+    51.59,
+    -51.610000000000014
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 2339.7,
+   "bbox": [
+    891.07,
+    701.85,
+    32.6,
+    71.77,
+    -78.53999999999999
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 3826.84,
+   "bbox": [
+    901.76,
+    626.75,
+    45.71,
+    83.72,
+    -72.81
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 3190.53,
+   "bbox": [
+    904.37,
+    587.72,
+    37.29,
+    85.56,
+    -78.53999999999999
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 891.71,
+   "bbox": [
+    950.63,
+    573.19,
+    17.96,
+    49.65,
+    -72.81
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 752.4,
+   "bbox": [
+    957.01,
+    607.21,
+    27.38,
+    27.48,
+    -67.08
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1680.0,
+   "bbox": [
+    926.0,
+    418.95,
+    40.0,
+    42.0,
+    0.0
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1296.3,
+   "bbox": [
+    927.04,
+    394.36,
+    28.73,
+    45.12,
+    78.54000000000002
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 409.62,
+   "bbox": [
+    951.51,
+    400.13,
+    18.92,
+    21.65,
+    -5.730000000000018
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 990.21,
+   "bbox": [
+    929.54,
+    356.21,
+    26.64,
+    37.17,
+    65.94
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 770.43,
+   "bbox": [
+    977.39,
+    447.76,
+    20.8,
+    37.04,
+    84.26999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 455.87,
+   "bbox": [
+    956.77,
+    367.67,
+    17.08,
+    26.69,
+    78.54000000000002
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 367.97,
+   "bbox": [
+    965.3,
+    381.07,
+    16.21,
+    22.7,
+    67.07999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 320.01,
+   "bbox": [
+    970.8,
+    390.26,
+    12.14,
+    26.36,
+    72.81
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 501.5,
+   "bbox": [
+    972.64,
+    404.84,
+    17.21,
+    29.14,
+    84.26999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 420.0,
+   "bbox": [
+    981.0,
+    487.95,
+    14.0,
+    30.0,
+    -84.27
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 422.69,
+   "bbox": [
+    978.28,
+    506.82,
+    13.47,
+    31.38,
+    -90.0
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 556.04,
+   "bbox": [
+    979.5,
+    522.9,
+    17.02,
+    32.67,
+    -84.84
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 243.78,
+   "bbox": [
+    587.12,
+    31.81,
+    11.95,
+    20.4,
+    11.46
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 627.05,
+   "bbox": [
+    556.74,
+    42.64,
+    21.6,
+    29.03,
+    -5.730000000000018
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 244.08,
+   "bbox": [
+    623.5,
+    41.5,
+    12.99,
+    18.79,
+    11.46
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 202.52,
+   "bbox": [
+    641.88,
+    50.36,
+    10.83,
+    18.7,
+    40.11
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000001",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 11344.37,
+   "bbox": [
+    311.85,
+    360.06,
+    106.42,
+    106.6,
+    76.87
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 33943.86,
+   "bbox": [
+    431.38,
+    561.72,
+    153.28,
+    221.45,
+    -55.620000000000005
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 13553.89,
+   "bbox": [
+    201.96,
+    434.0,
+    76.71,
+    176.69,
+    -84.27
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 27922.99,
+   "bbox": [
+    362.39,
+    811.52,
+    120.42,
+    231.88,
+    -40.110000000000014
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 16790.02,
+   "bbox": [
+    499.91,
+    964.93,
+    100.72,
+    166.7,
+    -45.839999999999975
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 27343.96,
+   "bbox": [
+    616.04,
+    797.72,
+    146.53,
+    186.61,
+    78.54000000000002
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 3239.48,
+   "bbox": [
+    205.03,
+    368.2,
+    43.17,
+    75.04,
+    -34.379999999999995
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 4436.41,
+   "bbox": [
+    205.4,
+    319.18,
+    55.98,
+    79.25,
+    -84.27
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 2017.71,
+   "bbox": [
+    204.66,
+    272.5,
+    39.75,
+    50.76,
+    -72.81
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 6890.17,
+   "bbox": [
+    290.75,
+    253.83,
+    67.69,
+    101.79,
+    -11.45999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 2267.72,
+   "bbox": [
+    267.09,
+    203.64,
+    45.5,
+    49.84,
+    78.54000000000002
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 2484.56,
+   "bbox": [
+    270.54,
+    162.11,
+    43.65,
+    56.92,
+    84.26999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 4406.69,
+   "bbox": [
+    470.9,
+    77.76,
+    61.17,
+    72.04,
+    -11.45999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 6423.79,
+   "bbox": [
+    554.5,
+    104.1,
+    65.73,
+    97.73,
+    34.38
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 4174.82,
+   "bbox": [
+    585.58,
+    44.97,
+    50.9,
+    82.02,
+    0.0
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 7951.55,
+   "bbox": [
+    805.1,
+    151.28,
+    70.43,
+    112.9,
+    -34.379999999999995
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 29730.96,
+   "bbox": [
+    872.77,
+    346.39,
+    155.79,
+    190.84,
+    55.620000000000005
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 22907.62,
+   "bbox": [
+    1007.89,
+    588.49,
+    129.59,
+    176.77,
+    49.889999999999986
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 5625.05,
+   "bbox": [
+    1123.53,
+    635.98,
+    54.9,
+    102.46,
+    -49.889999999999986
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 9233.57,
+   "bbox": [
+    1063.44,
+    418.04,
+    82.12,
+    112.44,
+    11.46
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 5871.12,
+   "bbox": [
+    954.84,
+    275.42,
+    75.61,
+    77.65,
+    61.35000000000002
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 4870.71,
+   "bbox": [
+    650.25,
+    79.46,
+    51.75,
+    94.12,
+    -51.56999999999999
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1155.12,
+   "bbox": [
+    292.3,
+    1025.69,
+    23.98,
+    48.17,
+    49.889999999999986
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 743.51,
+   "bbox": [
+    224.67,
+    1011.03,
+    24.9,
+    29.86,
+    44.160000000000025
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1548.37,
+   "bbox": [
+    221.39,
+    976.52,
+    30.57,
+    50.65,
+    44.160000000000025
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 891.98,
+   "bbox": [
+    258.15,
+    1015.83,
+    23.66,
+    37.7,
+    -90.0
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 3392.62,
+   "bbox": [
+    188.21,
+    829.58,
+    42.16,
+    80.47,
+    -28.649999999999977
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1970.5,
+   "bbox": [
+    147.36,
+    737.68,
+    33.98,
+    57.99,
+    -22.920000000000016
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 960.0,
+   "bbox": [
+    99.0,
+    493.0,
+    24.0,
+    40.0,
+    0.0
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1209.45,
+   "bbox": [
+    99.88,
+    405.49,
+    27.5,
+    43.98,
+    5.73
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000002",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 19932.3,
+   "bbox": [
+    407.9,
+    620.74,
+    103.76,
+    192.1,
+    44.160000000000025
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000698",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 8322.86,
+   "bbox": [
+    584.06,
+    223.36,
+    72.6,
+    114.64,
+    72.81
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000698",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 4463.13,
+   "bbox": [
+    804.14,
+    240.5,
+    62.1,
+    71.87,
+    -40.110000000000014
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000698",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 18916.1,
+   "bbox": [
+    837.67,
+    575.32,
+    97.24,
+    194.53,
+    -84.27
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000698",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 5271.17,
+   "bbox": [
+    806.14,
+    776.71,
+    54.37,
+    96.95,
+    78.54000000000002
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000698",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 2847.65,
+   "bbox": [
+    819.6,
+    851.65,
+    44.69,
+    63.72,
+    11.46
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000698",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 6432.0,
+   "bbox": [
+    1280.92,
+    584.2,
+    48.0,
+    134.0,
+    -90.0
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000734",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 7973.18,
+   "bbox": [
+    717.79,
+    678.12,
+    74.46,
+    107.08,
+    -11.45999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000734",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 5265.69,
+   "bbox": [
+    354.71,
+    783.29,
+    52.81,
+    99.71,
+    67.07999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000734",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 1182.29,
+   "bbox": [
+    347.56,
+    32.32,
+    23.37,
+    50.59,
+    -40.110000000000014
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000734",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 876.05,
+   "bbox": [
+    283.59,
+    50.14,
+    23.38,
+    37.47,
+    -51.56999999999999
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000734",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 743.4,
+   "bbox": [
+    293.02,
+    34.44,
+    20.13,
+    36.93,
+    -57.30000000000001
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000734",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 10703.81,
+   "bbox": [
+    1005.73,
+    308.13,
+    69.85,
+    153.24,
+    51.57
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000734",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 7183.87,
+   "bbox": [
+    1225.02,
+    207.3,
+    66.97,
+    107.27,
+    61.35000000000002
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000734",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 3257.08,
+   "bbox": [
+    1342.74,
+    300.38,
+    53.5,
+    60.88,
+    -34.379999999999995
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000734",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 5070.9,
+   "bbox": [
+    1335.0,
+    542.68,
+    49.17,
+    103.13,
+    -72.81
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000734",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 4537.14,
+   "bbox": [
+    687.12,
+    827.34,
+    54.02,
+    83.99,
+    44.160000000000025
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000734",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 4395.44,
+   "bbox": [
+    333.74,
+    190.16,
+    46.19,
+    95.16,
+    -22.920000000000016
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000886",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 9849.55,
+   "bbox": [
+    526.3,
+    445.23,
+    99.09,
+    99.4,
+    -90.0
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000886",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 5258.95,
+   "bbox": [
+    494.67,
+    296.13,
+    60.02,
+    87.62,
+    28.65
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000886",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 5464.73,
+   "bbox": [
+    766.95,
+    336.34,
+    54.01,
+    101.18,
+    5.73
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000886",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 571.2,
+   "bbox": [
+    795.12,
+    305.37,
+    13.14,
+    43.47,
+    -11.45999999999998
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000886",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 693.0,
+   "bbox": [
+    899.5,
+    456.47,
+    21.0,
+    33.0,
+    -90.0
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000886",
+   "iscrowd": 0,
+   "segmentation": []
+  },
+  {
+   "area": 11592.28,
+   "bbox": [
+    564.72,
+    504.13,
+    105.74,
+    109.63,
+    -67.08
+   ],
+   "category_id": 1,
+   "person_id": null,
+   "image_id": "ytb_000886",
+   "iscrowd": 0,
+   "segmentation": []
+  }
+ ],
+ "images": [
+  {
+   "file_name": "youtube_val/ytb_000001.jpg",
+   "id": "ytb_000001",
+   "width": 1015,
+   "height": 1010
+  },
+  {
+   "file_name": "youtube_val/ytb_000002.jpg",
+   "id": "ytb_000002",
+   "width": 1312,
+   "height": 1080
+  },
+  {
+   "file_name": "youtube_val/ytb_000698.jpg",
+   "id": "ytb_000698",
+   "width": 1080,
+   "height": 1080
+  },
+  {
+   "file_name": "youtube_val/ytb_000734.jpg",
+   "id": "ytb_000734",
+   "width": 1696,
+   "height": 1080
+  },
+  {
+   "file_name": "youtube_val/ytb_000886.jpg",
+   "id": "ytb_000886",
+   "width": 1080,
+   "height": 1080
+  }
+ ],
+ "categories": [
+  {
+   "id": 1,
+   "name": "person",
+   "supercategory": "person"
+  }
+ ]
+}

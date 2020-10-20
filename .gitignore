@@ -7,7 +7,6 @@ deprecated/
 
 .vscode
 .DS_Store
-*.json
 *.sh
 *.log
 *.ckpt
