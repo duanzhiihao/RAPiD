@@ -29,9 +29,9 @@ if __name__ == "__main__":
     # command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--imgs_path', type=str,
-                        default='images/tiny_val/youtube_val')
+                        default='images/tiny_val/one')
     parser.add_argument('--gt_path', type=str,
-                        default='images/tiny_val/youtube_val.json')
+                        default='images/tiny_val/one.json')
     parser.add_argument('--metric', type=str,
                         default='AP',
                         choices=['AP', 'F', 'counting'])
