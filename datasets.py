@@ -88,6 +88,8 @@ class Dataset4YoloAngle(torch.utils.data.Dataset):
                 ann['bbox'][3] += 1 # force that w < h
             ann['bbox'] = torch.Tensor(ann['bbox'])
             assert ann['bbox'][2] < ann['bbox'][3]
+            if ann['bbox'][4] == 90:
+                ann['bbox'][4] = -90
             assert ann['bbox'][4] >= -90 and ann['bbox'][4] < 90
             self.imgid2anns[img_id].append(ann)
         for img in json_data['images']:
