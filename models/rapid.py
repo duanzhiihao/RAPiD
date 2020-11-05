@@ -117,24 +117,18 @@ class PredLayer(nn.Module):
         self.l2_loss = nn.MSELoss(reduction='sum')
         self.bce_loss = nn.BCELoss(reduction='sum')
         loss_angle = kwargs.get('loss_angle', 'period_L1')
-        if loss_angle in {'L1', 'LL1'}:
-            self.loss4angle = nn.L1Loss(reduction='sum')
-        elif loss_angle in {'L2', 'LL2'}:
-            self.loss4angle = nn.MSELoss(reduction='sum')
-        elif loss_angle == 'BCE':
-            self.loss4angle = nn.BCELoss(reduction='sum')
-        elif loss_angle == 'period_L1':
+        if loss_angle == 'period_L1':
             self.loss4angle = models.losses.period_L1(reduction='sum')
         elif loss_angle == 'period_L2':
             self.loss4angle = models.losses.period_L2(reduction='sum')
         elif loss_angle == 'none':
             # inference
-            pass
+            self.loss4angle = None
         else:
             raise Exception('unknown loss for angle')
         self.laname = loss_angle
         self.angle_range = kwargs.get('angran', 360)
-        assert self.angle_range in {180, 360}
+        assert self.angle_range == 360, 'We recommend that angle range = 360'
 
     def forward(self, raw, img_size, labels=None):
         """
