@@ -14,11 +14,8 @@ class MWeval():
     def __init__(self, gt_path, iou_method='rle'):
         """
         Args:
-            data_dir (str): dataset root directory
-            img_size (int): image size after preprocess. images are resized \
-                to squares whose shape is (img_size, img_size).
-            nmsthre (float):
-                IoU threshold of non-max supression ranging from 0 to 1.
+            gt_path (str): path point to the ground truth JSON file
+            iou_method (str): method to calculate rotated bbox IoU. 'rle' is recommended.
         """
         assert torch.__version__.startswith('1')
         self.maxDet = 100 # max number of detections per image
@@ -38,7 +35,7 @@ class MWeval():
         '''
         Load and prepare the ground truth data
         '''
-        self.video_name = get_video_name(json_path)
+        # self.video_name = get_video_name(json_path)
         # load json file
         with open(json_path, 'r') as f:
             json_data = json.load(f)
