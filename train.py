@@ -42,8 +42,6 @@ if __name__ == '__main__':
     initial_size = 1088 if args.high_resolution else 672
     job_name = f'{args.model}_{args.backbone}_{args.dataset}{target_size}'
     # dataloader setting
-    only_person = False if args.model == 'Hitachi80' else True
-    print('Only train on person images and object:', only_person)
     batch_size = args.batch_size
     num_cpu = 0 if batch_size == 1 else 4
     subdivision = 128 // batch_size
@@ -169,7 +167,7 @@ if __name__ == '__main__':
                 factor = 0.1
             return factor
     dataset = Dataset4YoloAngle(train_img_dir, train_json, initial_size, enable_aug,
-                                only_person=only_person, debug_mode=args.debug)
+                                only_person=True, debug_mode=args.debug)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, 
                             num_workers=num_cpu, pin_memory=True, drop_last=False)
     dataiterator = iter(dataloader)
