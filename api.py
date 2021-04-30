@@ -40,11 +40,12 @@ class Detector():
         model.load_state_dict(torch.load(weights_path)['model'])
         print(f'Successfully loaded weights: {weights_path}')
         model.eval()
-        if torch.cuda.is_available():
-            print("Using CUDA since it's available...")
+        if kwargs.get('use_cuda', True):
+            print("Using CUDA...")
+            assert torch.cuda.is_available()
             self.model = model.cuda()
         else:
-            print("CUDA is not available. Using CPU instead...")
+            print("Using CPU instead of CUDA...")
             self.model = model
     
     def detect_one(self, **kwargs):
