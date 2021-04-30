@@ -21,7 +21,6 @@ class Detector():
         input_size: int, input resolution
     '''
     def __init__(self, model_name='', weights_path=None, model=None, **kwargs):
-        assert torch.cuda.is_available()
         # post-processing settings
         self.conf_thres = kwargs.get('conf_thres', None)
         self.input_size = kwargs.get('input_size', None)
@@ -41,7 +40,12 @@ class Detector():
         model.load_state_dict(torch.load(weights_path)['model'])
         print(f'Successfully loaded weights: {weights_path}')
         model.eval()
-        self.model = model.cuda()
+        if torch.cuda.is_available():
+            print("Using CUDA since it's available...")
+            self.model = model.cuda()
+        else:
+            print("CUDA is not available. Using CPU instead...")
+            self.model = model
     
     def detect_one(self, **kwargs):
         '''
@@ -125,7 +129,8 @@ class Detector():
         input_ = input_ori.unsqueeze(0)
         
         assert input_.dim() == 4
-        input_ = input_.cuda()
+        device = next(self.model.parameters()).device
+        input_ = input_.to(device=device)
         with torch.no_grad():
             dts = self.model(input_).cpu()
 
@@ -154,10 +159,11 @@ def detect_once(model, pil_img, conf_thres, nms_thres=0.45, input_size=608):
     '''
     Run the model on the pil_img and return the detections.
     '''
+    device = next(model.parameters()).device
     ori_w, ori_h = pil_img.width, pil_img.height
     input_img, _, pad_info = utils.rect_to_square(pil_img, None, input_size, 0)
 
-    input_img = tvf.to_tensor(input_img).cuda()
+    input_img = tvf.to_tensor(input_img).to(device=device)
     with torch.no_grad():
         dts = model(input_img[None]).cpu().squeeze()
     dts = dts[dts[:,5] >= conf_thres].cpu()
