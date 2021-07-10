@@ -140,7 +140,6 @@ class PredLayer(nn.Module):
         assert raw.dim() == 4
         # TODO: for now we require the input to be a square though it's not necessary.
         assert raw.shape[2] == raw.shape[3]
-        assert img_size > 0 and isinstance(img_size, int)
 
         # raw 
         device = raw.device
