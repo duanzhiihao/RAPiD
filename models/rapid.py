@@ -138,19 +138,17 @@ class PredLayer(nn.Module):
             labels: ground truth annotations        
         """
         assert raw.dim() == 4
-        # TODO: for now we require the input to be a square though it's not necessary.
-        assert raw.shape[2] == raw.shape[3]
 
         # raw 
         device = raw.device
         nB = raw.shape[0] # batch size
         nA = self.num_anchors # number of anchors
-        nG = raw.shape[2] # grid size, i.e., feature resolution
+        nH, nW = raw.shape[2:4] # grid size, i.e., feature resolution
         nCH = 6 # number of channels, 6=(x,y,w,h,angle,conf)
 
-        raw = raw.view(nB, nA, nCH, nG, nG)
+        raw = raw.view(nB, nA, nCH, nH, nW)
         raw = raw.permute(0, 1, 3, 4, 2).contiguous()
-        # now shape(nB, nA, nG, nG, nCH), meaning (nB x nA x nG x nG) predictions
+        # now shape(nB, nA, nH, nW, nCH), meaning (nB x nA x nH x nW) objects
 
         # sigmoid activation for xy, angle, obj_conf
         xy_offset = torch.sigmoid(raw[..., 0:2]) # x,y
@@ -168,19 +166,17 @@ class PredLayer(nn.Module):
         # and angle is normalized between 0~1.
 
         # calculate pred - xywh obj cls
-        x_shift = torch.arange(nG, dtype=torch.float, device=device
-                                ).repeat(nG, 1).view(1,1,nG,nG)
-        y_shift = torch.arange(nG, dtype=torch.float, device=device
-                                ).repeat(nG, 1).t().view(1,1,nG,nG)
+        x_shift = torch.arange(nW, dtype=torch.float, device=device).view(1,1,1,nW)
+        y_shift = torch.arange(nH, dtype=torch.float, device=device).view(1,1,nH,1)
 
         # NOTE: anchors are not normalized
         anchors = self.anchors.clone().to(device=device)
         anch_w = anchors[:,0].view(1, nA, 1, 1) # absolute
         anch_h = anchors[:,1].view(1, nA, 1, 1) # absolute
 
-        pred_final = torch.empty(nB, nA, nG, nG, 6, device=device)
-        pred_final[..., 0] = (xy_offset[..., 0] + x_shift) / nG # normalized 0-1
-        pred_final[..., 1] = (xy_offset[..., 1] + y_shift) / nG # normalized 0-1
+        pred_final = torch.empty(nB, nA, nH, nW, 6, device=device)
+        pred_final[..., 0] = (xy_offset[..., 0] + x_shift) / nW # normalized 0-1
+        pred_final[..., 1] = (xy_offset[..., 1] + y_shift) / nH # normalized 0-1
         pred_final[..., 2] = torch.exp(wh_scale[..., 0]) * anch_w # absolute
         pred_final[..., 3] = torch.exp(wh_scale[..., 1]) * anch_h # absolute
         if self.laname in {'LL1', 'LL2'}:
@@ -204,16 +200,16 @@ class PredLayer(nn.Module):
         pred_confs = pred_final[..., 5].detach()
 
         # target assignment
-        obj_mask = torch.zeros(nB, nA, nG, nG, dtype=torch.bool, device=device)
-        penalty_mask = torch.ones(nB, nA, nG, nG, dtype=torch.bool, device=device)
-        target = torch.zeros(nB, nA, nG, nG, nCH, dtype=torch.float, device=device)
+        obj_mask = torch.zeros(nB, nA, nH, nW, dtype=torch.bool, device=device)
+        penalty_mask = torch.ones(nB, nA, nH, nW, dtype=torch.bool, device=device)
+        target = torch.zeros(nB, nA, nH, nW, nCH, dtype=torch.float, device=device)
 
         labels = labels.detach()
         nlabel = (labels[:,:,0:4].sum(dim=2) > 0).sum(dim=1)  # number of objects
         assert (labels[:,:,4].abs() <= 90).all()
         labels = labels.to(device=device)
 
-        tx_all, ty_all = labels[:,:,0] * nG, labels[:,:,1] * nG # 0-nG
+        tx_all, ty_all = labels[:,:,0] * nW, labels[:,:,1] * nH # 0-nW, 0-nH
         tw_all, th_all = labels[:,:,2], labels[:,:,3] # normalized 0-1
         ta_all = labels[:,:,4] # degree, 0-max_angle
 
@@ -257,8 +253,8 @@ class PredLayer(nn.Module):
             truth_i = ti_all[b, :n][valid_mask]
             truth_j = tj_all[b, :n][valid_mask]
 
-            gt_boxes[:, 0] = tx_all[b, :n] / nG # normalized 0-1
-            gt_boxes[:, 1] = ty_all[b, :n] / nG # normalized 0-1
+            gt_boxes[:, 0] = tx_all[b, :n] / nW # normalized 0-1
+            gt_boxes[:, 1] = ty_all[b, :n] / nH # normalized 0-1
             gt_boxes[:, 4] = ta_all[b, :n] # degree
 
             # print(torch.cuda.memory_allocated()/1024/1024/1024, 'GB')
@@ -302,7 +298,7 @@ class PredLayer(nn.Module):
         loss = loss_xy + 0.5*loss_wh + loss_angle + loss_obj
         ngt = valid_gt_num + 1e-16
         self.gt_num = valid_gt_num
-        self.loss_str = f'level_{nG} total {int(ngt)} objects: ' \
+        self.loss_str = f'level_{nH}x{nW} total {int(ngt)} objects: ' \
                         f'xy/gt {loss_xy/ngt:.3f}, wh/gt {loss_wh/ngt:.3f}' \
                         f', angle/gt {loss_angle/ngt:.3f}, conf {loss_obj:.3f}'
 
