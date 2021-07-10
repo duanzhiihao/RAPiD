@@ -13,7 +13,7 @@ This repository is the official PyTorch implementation of the following paper. O
 The code should be able to work as long as you have the following packages:
 - PyTorch >= 1.0. Installation instructions can be found at https://pytorch.org/get-started/locally/
 - opencv-python
-- [pycocotools](https://github.com/cocodataset/cocoapi) (for Windows users, please refer to [this repo](https://github.com/maycuatroi/pycocotools-window))
+- [pycocotools](https://github.com/cocodataset/cocoapi) (for Windows users, please refer to [this repo](https://github.com/philferriere/cocoapi))
 - tqdm
 - tensorboard (optional, only for training)
 
