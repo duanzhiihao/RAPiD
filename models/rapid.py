@@ -65,7 +65,7 @@ class RAPiD(nn.Module):
         labels: a batch of ground truth
         '''
         assert x.dim() == 4
-        self.img_size = x.shape[2]
+        self.img_size = x.shape[2:4]
 
         # go through backbone
         small, medium, large = self.backbone(x)
@@ -108,7 +108,7 @@ class PredLayer(nn.Module):
         self.num_anchors = len(anchor_indices)
         # all anchors, (0, 0, w, h), used for calculating IoU
         self.anch_00wha_all = torch.zeros(len(all_anchors), 5)
-        self.anch_00wha_all[:,2:4] = all_anchors # absolute, degree
+        self.anch_00wha_all[:,2:4] = all_anchors # image space, degree
 
         self.ignore_thre = 0.6
 
@@ -130,28 +130,25 @@ class PredLayer(nn.Module):
         self.angle_range = kwargs.get('angran', 360)
         assert self.angle_range == 360, 'We recommend that angle range = 360'
 
-    def forward(self, raw, img_size, labels=None):
+    def forward(self, raw, img_hw, labels=None):
         """
         Args:
             raw: tensor with shape [batchsize, anchor_num*6, size, size]
-            img_size: int, image resolution
+            img_hw: int, image resolution
             labels: ground truth annotations        
         """
         assert raw.dim() == 4
-        # TODO: for now we require the input to be a square though it's not necessary.
-        assert raw.shape[2] == raw.shape[3]
-        assert img_size > 0 and isinstance(img_size, int)
 
         # raw 
         device = raw.device
         nB = raw.shape[0] # batch size
         nA = self.num_anchors # number of anchors
-        nG = raw.shape[2] # grid size, i.e., feature resolution
+        nH, nW = raw.shape[2:4] # grid size, i.e., feature resolution
         nCH = 6 # number of channels, 6=(x,y,w,h,angle,conf)
 
-        raw = raw.view(nB, nA, nCH, nG, nG)
+        raw = raw.view(nB, nA, nCH, nH, nW)
         raw = raw.permute(0, 1, 3, 4, 2).contiguous()
-        # now shape(nB, nA, nG, nG, nCH), meaning (nB x nA x nG x nG) predictions
+        # now shape(nB, nA, nH, nW, nCH), meaning (nB x nA x nH x nW) objects
 
         # sigmoid activation for xy, angle, obj_conf
         xy_offset = torch.sigmoid(raw[..., 0:2]) # x,y
@@ -169,21 +166,19 @@ class PredLayer(nn.Module):
         # and angle is normalized between 0~1.
 
         # calculate pred - xywh obj cls
-        x_shift = torch.arange(nG, dtype=torch.float, device=device
-                                ).repeat(nG, 1).view(1,1,nG,nG)
-        y_shift = torch.arange(nG, dtype=torch.float, device=device
-                                ).repeat(nG, 1).t().view(1,1,nG,nG)
+        x_shift = torch.arange(nW, dtype=torch.float, device=device).view(1,1,1,nW)
+        y_shift = torch.arange(nH, dtype=torch.float, device=device).view(1,1,nH,1)
 
         # NOTE: anchors are not normalized
         anchors = self.anchors.clone().to(device=device)
-        anch_w = anchors[:,0].view(1, nA, 1, 1) # absolute
-        anch_h = anchors[:,1].view(1, nA, 1, 1) # absolute
+        anch_w = anchors[:,0].view(1, nA, 1, 1) # image space
+        anch_h = anchors[:,1].view(1, nA, 1, 1) # image space
 
-        pred_final = torch.empty(nB, nA, nG, nG, 6, device=device)
-        pred_final[..., 0] = (xy_offset[..., 0] + x_shift) / nG # normalized 0-1
-        pred_final[..., 1] = (xy_offset[..., 1] + y_shift) / nG # normalized 0-1
-        pred_final[..., 2] = torch.exp(wh_scale[..., 0]) * anch_w # absolute
-        pred_final[..., 3] = torch.exp(wh_scale[..., 1]) * anch_h # absolute
+        pred_final = torch.empty(nB, nA, nH, nW, 6, device=device)
+        pred_final[..., 0] = (xy_offset[..., 0] + x_shift) / nW # 0-1 space
+        pred_final[..., 1] = (xy_offset[..., 1] + y_shift) / nH # 0-1 space
+        pred_final[..., 2] = torch.exp(wh_scale[..., 0]) * anch_w # image space
+        pred_final[..., 3] = torch.exp(wh_scale[..., 1]) * anch_h # image space
         if self.laname in {'LL1', 'LL2'}:
             pred_final[..., 4] = angle / np.pi * 180 # degree
         else:
@@ -191,13 +186,15 @@ class PredLayer(nn.Module):
         pred_final[..., 5] = conf
 
         if labels is None:
-            # inference, convert final predictions to absolute
-            pred_final[..., :2] *= img_size
+            # inference, convert final predictions to image space
+            pred_final[..., 0] *= img_hw[1]
+            pred_final[..., 1] *= img_hw[0]
             # self.dt_cache = pred_final.clone()
             return pred_final.view(nB, -1, nCH).detach(), None
         else:
             # training, convert final predictions to be normalized
-            pred_final[..., 2:4] /= img_size
+            pred_final[..., 2] /= img_hw[1]
+            pred_final[..., 3] /= img_hw[0]
             # force the normalized w and h to be <= 1
             pred_final[..., 0:4].clamp_(min=0, max=1)
 
@@ -205,25 +202,25 @@ class PredLayer(nn.Module):
         pred_confs = pred_final[..., 5].detach()
 
         # target assignment
-        obj_mask = torch.zeros(nB, nA, nG, nG, dtype=torch.bool, device=device)
-        penalty_mask = torch.ones(nB, nA, nG, nG, dtype=torch.bool, device=device)
-        target = torch.zeros(nB, nA, nG, nG, nCH, dtype=torch.float, device=device)
+        obj_mask = torch.zeros(nB, nA, nH, nW, dtype=torch.bool, device=device)
+        penalty_mask = torch.ones(nB, nA, nH, nW, dtype=torch.bool, device=device)
+        target = torch.zeros(nB, nA, nH, nW, nCH, dtype=torch.float, device=device)
 
         labels = labels.detach()
         nlabel = (labels[:,:,0:4].sum(dim=2) > 0).sum(dim=1)  # number of objects
         assert (labels[:,:,4].abs() <= 90).all()
         labels = labels.to(device=device)
 
-        tx_all, ty_all = labels[:,:,0] * nG, labels[:,:,1] * nG # 0-nG
+        tx_all, ty_all = labels[:,:,0] * nW, labels[:,:,1] * nH # 0-nW, 0-nH
         tw_all, th_all = labels[:,:,2], labels[:,:,3] # normalized 0-1
         ta_all = labels[:,:,4] # degree, 0-max_angle
 
         ti_all = tx_all.long()
         tj_all = ty_all.long()
 
-        norm_anch_wh = anchors[:,0:2] / img_size # normalized
+        norm_anch_wh = anchors[:,0:2] / img_hw # normalized
         norm_anch_00wha = self.anch_00wha_all.clone().to(device=device)
-        norm_anch_00wha[:,2:4] /= img_size # normalized
+        norm_anch_00wha[:,2:4] /= img_hw # normalized
 
         # traverse all images in a batch
         valid_gt_num = 0
@@ -241,10 +238,10 @@ class PredLayer(nn.Module):
             anchor_ious = iou_mask(gt_boxes, norm_anch_00wha, xywha=True,
                                    mask_size=64, is_degree=True)
             # anchor_ious = iou_rle(gt_boxes, norm_anch_00wha, xywha=True,
-            #                       is_degree=True, img_size=img_size, normalized=True)
+            #                       is_degree=True, img_hw=img_hw, normalized=True)
             best_n_all = torch.argmax(anchor_ious, dim=1)
             best_n = best_n_all % self.num_anchors
-            
+
             valid_mask = torch.zeros(n, dtype=torch.bool, device=device)
             for ind in self.anchor_indices.to(device=device):
                 valid_mask = ( valid_mask | (best_n_all == ind) )
@@ -253,13 +250,13 @@ class PredLayer(nn.Module):
                 continue
             else:
                 valid_gt_num += sum(valid_mask)
-            
+
             best_n = best_n[valid_mask]
             truth_i = ti_all[b, :n][valid_mask]
             truth_j = tj_all[b, :n][valid_mask]
 
-            gt_boxes[:, 0] = tx_all[b, :n] / nG # normalized 0-1
-            gt_boxes[:, 1] = ty_all[b, :n] / nG # normalized 0-1
+            gt_boxes[:, 0] = tx_all[b, :n] / nW # normalized 0-1
+            gt_boxes[:, 1] = ty_all[b, :n] / nH # normalized 0-1
             gt_boxes[:, 4] = ta_all[b, :n] # degree
 
             # print(torch.cuda.memory_allocated()/1024/1024/1024, 'GB')
@@ -271,7 +268,7 @@ class PredLayer(nn.Module):
                 # pred_ious = iou_mask(selected.view(-1,5), gt_boxes, xywha=True,
                 #                     mask_size=32, is_degree=True)
                 pred_ious = iou_rle(selected.view(-1,5), gt_boxes, xywha=True,
-                                    is_degree=True, img_size=img_size, normalized=True)
+                                    is_degree=True, img_size=img_hw, normalized=True)
                 pred_best_iou, _ = pred_ious.max(dim=1)
                 to_be_ignored = (pred_best_iou > self.ignore_thre)
                 # set mask to zero (ignore) if the pred BB has a large IoU with any gt BB
@@ -303,7 +300,7 @@ class PredLayer(nn.Module):
         loss = loss_xy + 0.5*loss_wh + loss_angle + loss_obj
         ngt = valid_gt_num + 1e-16
         self.gt_num = valid_gt_num
-        self.loss_str = f'level_{nG} total {int(ngt)} objects: ' \
+        self.loss_str = f'level_{nH}x{nW} total {int(ngt)} objects: ' \
                         f'xy/gt {loss_xy/ngt:.3f}, wh/gt {loss_wh/ngt:.3f}' \
                         f', angle/gt {loss_angle/ngt:.3f}, conf {loss_obj:.3f}'
 

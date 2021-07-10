@@ -31,6 +31,9 @@ class Detector():
         if model_name == 'rapid':
             from models.rapid import RAPiD
             model = RAPiD(backbone='dark53')
+        elif model_name == 'rapid_export': # testing-only version
+            from models.rapid_export import RAPiD
+            model = RAPiD()
         else:
             raise NotImplementedError()
         total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -47,7 +50,7 @@ class Detector():
         else:
             print("Using CPU instead of CUDA...")
             self.model = model
-    
+
     def detect_one(self, **kwargs):
         '''
         Inference on a single image.
@@ -125,10 +128,10 @@ class Detector():
 
         # pad to square
         input_img, _, pad_info = utils.rect_to_square(pil_img, None, input_size, 0)
-        
+
         input_ori = tvf.to_tensor(input_img)
         input_ = input_ori.unsqueeze(0)
-        
+
         assert input_.dim() == 4
         device = next(self.model.parameters()).device
         input_ = input_.to(device=device)

@@ -153,6 +153,7 @@ class YOLOBranch(nn.Module):
             self.process = ConvBnLeaky(prev_ch[0], prev_ch[1], k=1, s=1)
             in_after_cat = in_ + prev_ch[1]
         else:
+            self.process = None
             in_after_cat = in_
 
         self.cbl_0 = ConvBnLeaky(in_after_cat, in_//2, k=1, s=1)
@@ -168,8 +169,9 @@ class YOLOBranch(nn.Module):
         
     def forward(self, x, previous=None):
         '''
-        x: feature from backbone, for large/medium/small size
-        previous: feature from previous yolo layer
+        Args:
+            x: feature from backbone, for large/medium/small size
+            previous: feature from the lower spatial resolution
         '''
         if previous is not None:
             pre = self.process(previous)

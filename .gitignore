@@ -11,6 +11,8 @@ deprecated/
 *.log
 *.ckpt
 *.pth
+*.onnx
+*.trt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

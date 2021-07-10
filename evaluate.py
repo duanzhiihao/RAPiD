@@ -52,7 +52,7 @@ if __name__ == "__main__":
         eval_cepdof_api(args.gt_path, dts_json)
         print('-------------------Evaluate using MWtools.py-------------------')
         eval_custom(args.gt_path, dts_json, args.metric)
-    
+
     elif args.metric == 'F':
         # Precision, Recall, and F-measure
         print('-------------------Evaluate using MWtools.py-------------------')

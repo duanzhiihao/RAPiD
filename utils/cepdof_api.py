@@ -21,7 +21,7 @@ class CEPDOFeval(cocoeval.COCOeval):
         # Initialize some variables which will be modified later
         self.evalImgs = defaultdict(list)   # per-image per-category eval results
         self.eval     = {}                  # accumulated evaluation results
-    
+
     def _preprocess_dt_gt(self):
         # We are not using 'id' in ground truth annotations because it's useless.
         # However, COCOeval API requires 'id' in both detections and ground truth.
@@ -138,14 +138,14 @@ def iou_rle(boxes1, boxes2, img_size=2048):
     boxes2 = np.array(boxes2).reshape(-1, 5)
     if boxes1.shape[0] == 0 or boxes2.shape[0] == 0:
         return np.zeros((boxes1.shape[0], boxes2.shape[0]))
-    
+
     # Convert angle from degree to radian
     boxes1[:,4] = boxes1[:,4] * np.pi / 180
     boxes2[:,4] = boxes2[:,4] * np.pi / 180
 
     b1 = xywha2vertex(boxes1, is_degree=False).tolist()
     b2 = xywha2vertex(boxes2, is_degree=False).tolist()
-    
+
     h, w = (img_size, img_size) if isinstance(img_size, int) else img_size
     b1 = maskUtils.frPyObjects(b1, h, w)
     b2 = maskUtils.frPyObjects(b2, h, w)
