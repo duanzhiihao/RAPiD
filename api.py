@@ -31,6 +31,9 @@ class Detector():
         if model_name == 'rapid':
             from models.rapid import RAPiD
             model = RAPiD(backbone='dark53')
+        elif model_name == 'rapid_export': # testing-only version
+            from models.rapid_export import RAPiD
+            model = RAPiD()
         else:
             raise NotImplementedError()
         total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
