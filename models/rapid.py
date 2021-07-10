@@ -241,7 +241,7 @@ class PredLayer(nn.Module):
             #                       is_degree=True, img_hw=img_hw, normalized=True)
             best_n_all = torch.argmax(anchor_ious, dim=1)
             best_n = best_n_all % self.num_anchors
-            
+
             valid_mask = torch.zeros(n, dtype=torch.bool, device=device)
             for ind in self.anchor_indices.to(device=device):
                 valid_mask = ( valid_mask | (best_n_all == ind) )
@@ -250,7 +250,7 @@ class PredLayer(nn.Module):
                 continue
             else:
                 valid_gt_num += sum(valid_mask)
-            
+
             best_n = best_n[valid_mask]
             truth_i = ti_all[b, :n][valid_mask]
             truth_j = tj_all[b, :n][valid_mask]
