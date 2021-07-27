@@ -67,7 +67,7 @@ class Detector():
                 default: False
         '''
         assert 'img_path' in kwargs or 'pil_img' in kwargs
-        img = kwargs.get('pil_img', None) or Image.open(kwargs['img_path'])
+        img = kwargs.pop('pil_img', None) or Image.open(kwargs['img_path'])
 
         detections = self._predict_pil(img, **kwargs)
 
