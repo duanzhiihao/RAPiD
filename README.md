@@ -5,8 +5,8 @@ This repository is the official PyTorch implementation of the following paper. O
 [[arXiv paper](https://arxiv.org/abs/2005.11623)] [[Project page](http://vip.bu.edu/projects/vsns/cossy/fisheye/rapid/)]
 
 ## Updates
-- [Oct 15, 2020]: Add instructions of training on COCO
-- [Oct 15, 2020]: Add instructions of evaulation
+- [Oct 15, 2020]: Add instructions for training on COCO
+- [Oct 15, 2020]: Add instructions for evaulation
 
 ## Installation
 **Requirements**:
