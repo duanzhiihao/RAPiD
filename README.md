@@ -66,7 +66,7 @@ if args.dataset == 'COCO':
     train_json = 'path/to/COCO/annotations/instances_train2017.json'
 ```
 
-4. `python train.py --model rapid_L1 --dataset COCO --batch_size 8` should work. Try to set the largest possible batch size that can fit in the GPU memory.
+4. `python train.py --model rapid_pL1 --dataset COCO --batch_size 8` should work. Try to set the largest possible batch size that can fit in the GPU memory.
 
 Pre-trained checkpoint on COCO after 20k training iterations: [download](https://github.com/duanzhiihao/RAPiD/releases/download/v0.1/rapid_pL1_dark53_COCO608_Jan07_20000.ckpt). Note that this is different from the one we reported in the paper. We encourage you to further fine-tune it, either on COCO (ideally >100k iterations) or on fisheye images, to get better performance.
 
