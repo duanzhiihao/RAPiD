@@ -218,6 +218,9 @@ class PredLayer(nn.Module):
         ti_all = tx_all.long()
         tj_all = ty_all.long()
 
+        # workaround to be compatible with newer version pytorch. See issue #35. 
+        img_hw = torch.Tensor(list(img_hw)).to(device=device)
+
         norm_anch_wh = anchors[:,0:2] / img_hw # normalized
         norm_anch_00wha = self.anch_00wha_all.clone().to(device=device)
         norm_anch_00wha[:,2:4] /= img_hw # normalized
@@ -268,7 +271,7 @@ class PredLayer(nn.Module):
                 # pred_ious = iou_mask(selected.view(-1,5), gt_boxes, xywha=True,
                 #                     mask_size=32, is_degree=True)
                 pred_ious = iou_rle(selected.view(-1,5), gt_boxes, xywha=True,
-                                    is_degree=True, img_size=img_hw, normalized=True)
+                                    is_degree=True, img_size=tuple(img_hw.tolist()), normalized=True)
                 pred_best_iou, _ = pred_ious.max(dim=1)
                 to_be_ignored = (pred_best_iou > self.ignore_thre)
                 # set mask to zero (ignore) if the pred BB has a large IoU with any gt BB

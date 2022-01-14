@@ -326,7 +326,7 @@ def iou_rle(boxes1, boxes2, xywha, is_degree=True, **kwargs):
     assert boxes1.shape[1] == boxes2.shape[1] == 5
     
     size = kwargs.get('img_size', 2048)
-    h,w = size if isinstance(size, tuple) else size,size
+    h,w = size if isinstance(size, tuple) else (size,size)
     if 'normalized' in kwargs and kwargs['normalized'] == True:
         # the [x,y,w,h] are between 0~1
         # assert (boxes1[:,:4] <= 1).all() and (boxes2[:,:4] <= 1).all()
