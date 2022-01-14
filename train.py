@@ -193,7 +193,7 @@ if __name__ == '__main__':
 
     val_set = MWtools.MWeval(val_json, iou_method='rle')
     eval_img_names = os.listdir('./images/')
-    eval_img_paths = [os.path.join('./images/',s) for s in eval_img_names]
+    eval_img_paths = [os.path.join('./images/',s) for s in eval_img_names if s.endswith('.jpg')]
     logger = SummaryWriter(f'./logs/{job_name}')
 
     # optimizer setup
