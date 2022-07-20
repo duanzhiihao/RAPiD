@@ -226,6 +226,5 @@ class Dataset4YoloAngle(torch.utils.data.Dataset):
         return img, labels
 
 
-
 def uniform(a, b):
     return a + np.random.rand() * (b-a)

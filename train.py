@@ -1,201 +1,115 @@
-# This is the main training file we are using
-import os
+# This is the script for training models
+from pathlib import Path
+from PIL import Image
 import argparse
 import random
-import torch
-from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
-from PIL import Image
 import numpy as np
 import cv2
+import torch
+from torch.utils.data import DataLoader
 
+from models.rapid import RAPiD
 from datasets import Dataset4YoloAngle
-from utils import MWtools, timer, visualization
+from utils import MWtools, visualization
 import api
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='rapid_pL1')
-    parser.add_argument('--backbone', type=str, default='dark53')
-    parser.add_argument('--dataset', type=str, default='COCO')
-    parser.add_argument('--batch_size', type=int, default=1)
-
+    # dataset
+    parser.add_argument('--train_data', type=str, default='coco')
     parser.add_argument('--high_resolution', action='store_true')
-
+    # training
+    parser.add_argument('--batch_size', type=int, default=1)
+    parser.add_argument('--lr',         type=float, default=0.001)
+    parser.add_argument('--workers',    type=int, default=0)
+    # pre-train
     parser.add_argument('--checkpoint', type=str, default='')
-
-    parser.add_argument('--eval_interval', type=int, default=1000)
-    parser.add_argument('--img_interval', type=int, default=500)
-    parser.add_argument('--print_interval', type=int, default=1)
+    # logging
+    parser.add_argument('--eval_interval',       type=int, default=1000)
+    parser.add_argument('--img_interval',        type=int, default=500)
+    parser.add_argument('--print_interval',      type=int, default=1)
     parser.add_argument('--checkpoint_interval', type=int, default=2000)
-    
-    parser.add_argument('--debug', action='store_true') # default=True)
     return parser.parse_args()
 
 
-if __name__ == '__main__':
-    args = parse_args()
-    assert torch.cuda.is_available() # Currently do not support CPU training
-    # -------------------------- settings ---------------------------
-    target_size = 1024 if args.high_resolution else 608
-    initial_size = 1088 if args.high_resolution else 672
-    job_name = f'{args.model}_{args.backbone}_{args.dataset}{target_size}'
-    # dataloader setting
-    batch_size = args.batch_size
-    num_cpu = 0 if batch_size == 1 else 4
-    subdivision = 128 // batch_size
-    enable_aug = True
-    multiscale = True
-    multiscale_interval = 10
-    # SGD optimizer
-    decay_SGD = 0.0005 * batch_size * subdivision
-    print(f'effective batch size = {batch_size} * {subdivision}')
-    # dataset setting
-    print('initialing dataloader...')
-    if args.dataset == 'COCO':
-        train_img_dir = '../Datasets/COCO/train2017'
-        assert 'COCO' in train_img_dir # issue #11
-        train_json = '../Datasets/COCO/annotations/instances_train2017.json'
-        val_img_dir = './images/tiny_val/one'
-        val_json = './images/tiny_val/one.json'
-        lr_SGD = 0.001 / batch_size / subdivision
-        # Learning rate setup
-        def burnin_schedule(i):
-            burn_in = 500
-            if i < burn_in:
-                factor = (i / burn_in) ** 2
-            elif i < 30000:
-                factor = 1.0
-            elif i < 40000:
-                factor = 0.5
-            elif i < 100000:
-                factor = 0.2
-            elif i < 300000:
-                factor = 0.1
-            else:
-                factor = 0.01
-            return factor
-    elif args.dataset == 'MW':
-        train_img_dir = '../../../MW18Mar/whole'
-        train_json = '../../../MW18Mar/annotations/no19_nosmall.json'
-        val_img_dir = './images/tiny_val/one'
-        val_json = './images/tiny_val/one.json'
-        lr_SGD = 0.0001 / batch_size / subdivision
-        # Learning rate setup
-        def burnin_schedule(i):
-            burn_in = 500
-            if i < burn_in:
-                factor = (i / burn_in) ** 2
-            elif i < 10000:
-                factor = 1.0
-            elif i < 20000:
-                factor = 0.3
-            else:
-                factor = 0.1
-            return factor
-    elif args.dataset == 'HBCP':
-        videos = ['Meeting1', 'Meeting2', 'Lab2',
-                  'Lunch1', 'Lunch2', 'Lunch3', 'Edge_cases', 'IRill', 'Activity']
-        # if args.high_resolution:
-        #     videos += ['All_off', 'IRfilter', 'IRill']
-        train_img_dir = [f'../../../COSSY/{s}/' for s in videos]
-        train_json = [f'../../../COSSY/annotations/{s}.json' for s in videos]
-        val_img_dir = '../../../COSSY/Lab1/'
-        val_json = '../../../COSSY/annotations/Lab1.json'
-        lr_SGD = 0.0001 / batch_size / subdivision
-        # Learning rate setup
-        def burnin_schedule(i):
-            burn_in = 500
-            if i < burn_in:
-                factor = (i / burn_in) ** 2
-            elif i < 10000:
-                factor = 1.0
-            elif i < 20000:
-                factor = 0.3
-            else:
-                factor = 0.1
-            return factor
-    elif args.dataset == 'HBMW':
-        train_img_dir = [
-            '../Datasets/fisheye/HABBOF/Meeting1',
-            '../Datasets/fisheye/HABBOF/Meeting2',
-            '../Datasets/fisheye/HABBOF/Lab2',
-            '../Datasets/fisheye/MW-R'
-        ]
-        train_json = [
-            '../Datasets/fisheye/annotations/Meeting1.json',
-            '../Datasets/fisheye/annotations/Meeting2.json',
-            '../Datasets/fisheye/annotations/Lab2.json',
-            '../Datasets/fisheye/annotations/MW-R.json'
-        ]
-        val_img_dir = '../Datasets/fisheye/HABBOF/Lab1/'
-        val_json = '../Datasets/fisheye/annotations/Lab1.json'
-        lr_SGD = 0.0001 / batch_size / subdivision
-        # Learning rate setup
-        def burnin_schedule(i):
-            burn_in = 500
-            if i < burn_in:
-                factor = (i / burn_in) ** 2
-            elif i < 10000:
-                factor = 1.0
-            elif i < 20000:
-                factor = 0.3
-            else:
-                factor = 0.1
-            return factor
-    elif args.dataset == 'CPMW':
-        videos = ['Lunch1', 'Lunch2', 'Edge_cases', 'IRill', 'Activity',
-                  'MW']
-        # if args.high_resolution:
-        #     videos += ['All_off', 'IRfilter']
-        train_img_dir = [f'../../../COSSY/{s}/' for s in videos]
-        train_json = [f'../../../COSSY/annotations/{s}.json' for s in videos]
-        val_img_dir = '../../../COSSY/Lunch3/'
-        val_json = '../../../COSSY/annotations/Lunch3.json'
-        lr_SGD = 0.0001 / batch_size / subdivision
-        # Learning rate setup
-        def burnin_schedule(i):
-            burn_in = 500
-            if i < burn_in:
-                factor = (i / burn_in) ** 2
-            elif i < 10000:
-                factor = 1.0
-            elif i < 20000:
-                factor = 0.3
-            else:
-                factor = 0.1
-            return factor
-    dataset = Dataset4YoloAngle(train_img_dir, train_json, initial_size, enable_aug,
-                                only_person=True, debug_mode=args.debug)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, 
-                            num_workers=num_cpu, pin_memory=True, drop_last=False)
-    dataiterator = iter(dataloader)
-    
-    if args.model == 'rapid_pL1':
-        from models.rapid import RAPiD
-        model = RAPiD(backbone=args.backbone, img_norm=False,
-                       loss_angle='period_L1')
-    elif args.model == 'rapid_pL2':
-        from models.rapid import RAPiD
-        model = RAPiD(backbone=args.backbone, img_norm=False,
-                       loss_angle='period_L2')
-    
-    model = model.cuda()
+def burnin_schedule(i):
+    burn_in = 500
+    if i < burn_in:
+        factor = (i / burn_in) ** 2
+    elif i < 30000:
+        factor = 1.0
+    elif i < 40000:
+        factor = 0.5
+    elif i < 100000:
+        factor = 0.2
+    elif i < 300000:
+        factor = 0.1
+    else:
+        factor = 0.01
+    return factor
 
-    start_iter = -1
-    if args.checkpoint:
-        print("loading ckpt...", args.checkpoint)
-        weights_path = os.path.join('./weights/', args.checkpoint)
-        state = torch.load(weights_path)
-        model.load_state_dict(state['model'])
-        start_iter = state['iter']
+# Learning rate setup
+def burnin_schedule(i):
+    burn_in = 500
+    if i < burn_in:
+        factor = (i / burn_in) ** 2
+    elif i < 10000:
+        factor = 1.0
+    elif i < 20000:
+        factor = 0.3
+    else:
+        factor = 0.1
+    return factor
 
-    val_set = MWtools.MWeval(val_json, iou_method='rle')
-    eval_img_names = os.listdir('./images/')
-    eval_img_paths = [os.path.join('./images/',s) for s in eval_img_names if s.endswith('.jpg')]
-    logger = SummaryWriter(f'./logs/{job_name}')
+def get_dataset(cfg):
+    coco_root = Path('../../datasets/coco')
+    data_root = Path('../../datasets/fisheye')
+    ann_root  = Path('../../datasets/fisheye/annotations')
+    known_splits = {
+        'coco':     dict(img_dir=coco_root/'train2017', json_path=coco_root/'annotations/instances_train2017.json'),
+        'tiny-val': dict(img_dir='images/tiny_val/one', json_path='images/tiny_val/one.json'),
+        'mw-r':     dict(img_dir=data_root / 'MW-R',    json_path=ann_root / 'MW-R.json'),
+        'meeting1': dict(img_dir=data_root / 'HABBOF/Meeting1',     json_path=ann_root / 'HABBOF/Meeting1.json'),
+        'meeting2': dict(img_dir=data_root / 'HABBOF/Meeting2',     json_path=ann_root / 'HABBOF/Meeting2.json'),
+        'lab1':     dict(img_dir=data_root / 'HABBOF/Lab1',         json_path=ann_root / 'HABBOF/Lab1.json'),
+        'lab2':     dict(img_dir=data_root / 'HABBOF/Lab2',         json_path=ann_root / 'HABBOF/Lab2.json'),
+        'lunch1':   dict(img_dir=data_root / 'CEPDOF/Lunch1',       json_path=ann_root / 'CEPDOF/Lunch1.json'),
+        'lunch2':   dict(img_dir=data_root / 'CEPDOF/Lunch2',       json_path=ann_root / 'CEPDOF/Lunch2.json'),
+        'lunch3':   dict(img_dir=data_root / 'CEPDOF/Lunch3',       json_path=ann_root / 'CEPDOF/Lunch3.json'),
+        'edgecase': dict(img_dir=data_root / 'CEPDOF/Edge_cases',   json_path=ann_root / 'CEPDOF/Edge_cases.json'),
+        'high-act': dict(img_dir=data_root / 'CEPDOF/High_activity',json_path=ann_root / 'CEPDOF/High_activity.json'),
+        'irill':    dict(img_dir=data_root / 'CEPDOF/IRill',        json_path=ann_root / 'CEPDOF/IRill.json'),
+    }
+    if cfg.dataset == 'coco':
+        train_data = ['coco']
+        val_data   = 'tiny-val'
+    elif cfg.dataset == 'hbcp': # HABBOF and CEPDOF
+        train_data = ['meeting1', 'meeting2', 'lab2', 'lunch1', 'lunch2', 'lunch3', 'edgecase', 'high-act', 'irill']
+        val_data   = 'lab1'
+    elif cfg.dataset == 'hbmw': # HABBOF and MW-R
+        train_data = ['meeting1', 'meeting2', 'lab2', 'mw-r']
+        val_data   = 'lab1'
+    elif cfg.dataset == 'cpmw': # CEPDOF and MW-R
+        train_data = ['lunch1', 'lunch2', 'edgecase', 'high-act', 'irill', 'mw-r']
+        val_data   = 'lunch3'
+    else:
+        raise ValueError(f'Unknown dataset name {cfg.dataset}')
 
+    train_img_dir = [data['img_dir']   for data in train_data]
+    train_json    = [data['json_path'] for data in train_data]
+    trainset = Dataset4YoloAngle(train_img_dir, train_json, img_size=cfg.initial_size, only_person=True)
+    dataloader = DataLoader(trainset, batch_size=cfg.batch_size, shuffle=True, 
+                            num_workers=cfg.workers, pin_memory=True, drop_last=False)
+    return trainset
+
+
+def get_optimizer(model, cfg):
+    if cfg.dataset not in cfg.checkpoint:
+        start_iter = -1
+    else:
+        optimizer.load_state_dict(state['optimizer_state_dict'])
+        print(f'begin from iteration: {start_iter}')
     # optimizer setup
     params = []
     # set weight decay only on conv.weight
@@ -205,20 +119,55 @@ if __name__ == '__main__':
         else:
             params += [{'params':value, 'weight_decay':0.0}]
 
-    if args.dataset == 'COCO':
-        optimizer = torch.optim.SGD(params, lr=lr_SGD, momentum=0.9, dampening=0,
-                                    weight_decay=decay_SGD)
-    elif args.dataset in {'MW', 'HBCP', 'HBMW', 'CPMW'}:
-        assert args.checkpoint is not None
+    lr_SGD = 0.0001 / cfg.batch_size / cfg.subdivision
+    if cfg.dataset == 'COCO':
+        optimizer = torch.optim.SGD(params, lr=lr_SGD, weight_decay=decay_SGD)
+    elif cfg.dataset in {'MW', 'HBCP', 'HBMW', 'CPMW'}:
+        assert cfg.checkpoint is not None
         optimizer = torch.optim.SGD(params, lr=lr_SGD)
     else:
         raise NotImplementedError()
 
-    if args.dataset not in args.checkpoint:
-        start_iter = -1
-    else:
-        optimizer.load_state_dict(state['optimizer_state_dict'])
-        print(f'begin from iteration: {start_iter}')
+
+def main():
+    cfg = parse_args()
+    assert torch.cuda.is_available() # Currently do not support CPU training
+
+    # -------------------------- settings ---------------------------
+    cfg.target_size  = 1024 if cfg.high_resolution else 608
+    cfg.initial_size = 1088 if cfg.high_resolution else 672
+    # job_name = f'{cfg.model}_{cfg.dataset}{cfg.target_size}'
+    # dataloader setting
+    num_cpu = 0 if cfg.batch_size == 1 else 4
+    subdivision = 128 // cfg.batch_size
+    multiscale = True
+    multiscale_interval = 10
+    # SGD optimizer
+    decay_SGD = 0.0005 * cfg.batch_size * subdivision
+    print(f'effective batch size = {cfg.batch_size} * {subdivision}')
+
+    # -------------------------- dataset ---------------------------
+    print('initialing dataloader...')
+    trainset = get_dataset(cfg)
+
+    # -------------------------- model ---------------------------
+    model = RAPiD(loss_angle='period_L1')
+    model = model.cuda()
+
+    start_iter = -1
+    if cfg.checkpoint:
+        print("loading ckpt...", cfg.checkpoint)
+        weights_path = os.path.join('./weights/', cfg.checkpoint)
+        state = torch.load(weights_path)
+        model.load_state_dict(state['model'])
+        start_iter = state['iter']
+
+    val_set = MWtools.MWeval(val_json, iou_method='rle')
+    eval_img_names = os.listdir('./images/')
+    eval_img_paths = [os.path.join('./images/',s) for s in eval_img_names if s.endswith('.jpg')]
+    # logger = SummaryWriter(f'./logs/{job_name}')
+
+
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, burnin_schedule, last_epoch=start_iter)
 
     # start training loop
@@ -226,7 +175,7 @@ if __name__ == '__main__':
     start_time = timer.tic()
     for iter_i in range(start_iter, 500000):
         # evaluation
-        if iter_i % args.eval_interval == 0 and (args.dataset != 'COCO' or iter_i > 0):
+        if iter_i % cfg.eval_interval == 0 and (cfg.dataset != 'COCO' or iter_i > 0):
             with timer.contexttimer() as t0:
                 model.eval()
                 model_eval = api.Detector(conf_thres=0.005, model=model)
@@ -258,7 +207,7 @@ if __name__ == '__main__':
         scheduler.step()
 
         # logging
-        if iter_i % args.print_interval == 0:
+        if iter_i % cfg.print_interval == 0:
             sec_used = timer.tic() - start_time
             time_used = timer.sec2str(sec_used)
             avg_iter = timer.sec2str(sec_used/(iter_i+1-start_iter))
@@ -274,10 +223,10 @@ if __name__ == '__main__':
 
         # random resizing
         if multiscale and iter_i > 0 and (iter_i % multiscale_interval == 0):
-            if args.high_resolution:
+            if cfg.high_resolution:
                 imgsize = random.randint(16, 34) * 32
             else:
-                low = 10 if args.dataset == 'COCO' else 16
+                low = 10 if cfg.dataset == 'COCO' else 16
                 imgsize = random.randint(low, 21) * 32
             dataset.img_size = imgsize
             dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True,
@@ -285,7 +234,7 @@ if __name__ == '__main__':
             dataiterator = iter(dataloader)
 
         # save checkpoint
-        if iter_i > 0 and (iter_i % args.checkpoint_interval == 0):
+        if iter_i > 0 and (iter_i % cfg.checkpoint_interval == 0):
             state_dict = {
                 'iter': iter_i,
                 'model': model.state_dict(),
@@ -295,7 +244,7 @@ if __name__ == '__main__':
             torch.save(state_dict, save_path)
 
         # save detection
-        if iter_i > 0 and iter_i % args.img_interval == 0:
+        if iter_i > 0 and iter_i % cfg.img_interval == 0:
             for img_path in eval_img_paths:
                 eval_img = Image.open(img_path)
                 dts = api.detect_once(model, eval_img, conf_thres=0.1, input_size=target_size)
@@ -306,3 +255,10 @@ if __name__ == '__main__':
                 logger.add_image(img_path, np_img, iter_i, dataformats='HWC')
 
             model.train()
+    
+    debug = 1
+
+
+if __name__ == '__main__':
+    main()
+
