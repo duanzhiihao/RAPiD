@@ -54,10 +54,6 @@ class Evaluator():
         dts = model_eval.detect_imgSeq(self.img_dir, input_size=target_size)
         msg = self.evaluator.evaluate_dtList(dts, metric='AP')
         print(msg)
-        # logger.add_text('Validation summary', s, iter_i)
-        # logger.add_scalar('Validation AP[IoU=0.5]', val_set._getAP(0.5), iter_i)
-        # logger.add_scalar('Validation AP[IoU=0.75]', val_set._getAP(0.75), iter_i)
-        # logger.add_scalar('Validation AP[IoU=0.5:0.95]', val_set._getAP(), iter_i)
         model.train()
 
 
@@ -110,7 +106,7 @@ def make_infinite_trainloader(dataset, cfg):
 
 
 def random_resizing_(trainset, cfg):
-    if cfg.high_resolution:
+    if cfg.high_res:
         imgsize = random.randint(16, 34) * 32
     else:
         low = 10 if (cfg.train_data == 'coco') else 16
@@ -124,6 +120,18 @@ def get_optimizer(model, cfg):
     parameters = model.parameters()
     optimizer = torch.optim.SGD(parameters, lr=cfg.lr, momentum=cfg.momentum)
     return optimizer
+
+
+def adjust_lr_(optimizer, i, cfg):
+    warm_up = 500
+    lr_min = 1e-3
+    if i < warm_up:
+        factor = (i / warm_up) ** 2
+    else:
+        factor = lr_min + 0.5 * (1 - lr_min) * (1 + np.cos(i * np.pi / cfg.iterations))
+    # update learning rate
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = cfg.lr * factor
 
 
 def save_checkpoint(save_path, model, optimizer=None, iter_i=None):
@@ -143,6 +151,18 @@ def check_directory(log_dir):
             exit()
     else:
         log_dir.mkdir(parents=True)
+
+
+def pbar_log(pbar, optimizer, iter_i, cfg, loss, img_size):
+    current_lr = optimizer.param_groups[0]['lr']
+    max_cuda = torch.cuda.max_memory_allocated(0) / 1e9
+    msg =  f'Iter: {iter_i}/{cfg.iterations} || '
+    msg += f'GPU_mem={max_cuda}G || '
+    msg += f'lr={current_lr} || '
+    msg += f'loss={loss.item():.3f} || '
+    msg += f'img_size={img_size} || '
+    pbar.set_description(msg)
+    torch.cuda.reset_peak_memory_stats(0)
 
 
 def detect_and_save(model, target_size, log_dir):
@@ -193,7 +213,7 @@ def main():
 
     # -------------------------- optimizer ---------------------------
     optimizer = get_optimizer(model, cfg)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cfg.iterations, eta_min=1e-5)
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cfg.iterations, eta_min=1e-6)
 
     # start training loop
     pbar = tqdm(range(cfg.iterations)) # progress bar
@@ -202,26 +222,22 @@ def main():
         if (iter_i % cfg.eval_interval == 0) and (cfg.train_data != 'coco' or iter_i > 0):
             evaluator.evaluate(model, target_size=cfg.target_size)
 
-        # subdivision loop
+        # learning rate schedule
+        adjust_lr_(optimizer, iter_i, cfg)
+
+        # gradient accumulation loop
         optimizer.zero_grad()
         for _ in range(cfg.subdivision):
             imgs, targets, cats, _, _ = next(trainloader) # load a batch
             imgs = imgs.to(device=device)
             loss = model(imgs, targets, labels_cats=cats)
+            loss = loss / float(cfg.subdivision)
             loss.backward()
         optimizer.step()
-        scheduler.step()
+        # scheduler.step()
 
         # logging
-        current_lr = scheduler.get_last_lr()[0]
-        max_cuda = torch.cuda.max_memory_allocated(0) / 1e9
-        msg =  f'Iter: {iter_i}/{cfg.iterations} || '
-        msg += f'GPU_mem={max_cuda}G || '
-        msg += f'lr={current_lr} || '
-        msg += f'loss={loss.item():.3f} || '
-        msg += f'img_size={trainset.img_size} || '
-        pbar.set_description(msg)
-        torch.cuda.reset_peak_memory_stats(0)
+        pbar_log(pbar, optimizer, iter_i, cfg, loss, trainset.img_size)
         if (cfg.print_interval > 0) and (iter_i % cfg.print_interval == 0):
             print(model.loss_str)
 
