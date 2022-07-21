@@ -173,7 +173,7 @@ def main():
     cfg.subdivision = 128 // cfg.batch_size
     print(f'effective batch size = {cfg.batch_size} * {cfg.subdivision}')
     # ---- logging setting ----
-    log_dir = Path(f'runs/rapid-{cfg.dataset}-{timer.today()}')
+    log_dir = Path(f'runs/rapid-{cfg.train_data}-{timer.today()}')
     check_directory(log_dir)
     cfg.img_interval = 100
 
