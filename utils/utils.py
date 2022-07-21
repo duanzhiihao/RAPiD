@@ -6,6 +6,24 @@ from torchvision import transforms
 from utils.iou_mask import iou_mask, iou_rle
 
 
+def query_yes_no(question):
+    """ Ask a yes/no question via input() and return their answer. \\
+    The return value is True for 'y' or 'yes', and False for 'n' or 'no'.
+
+    Args:
+        question (str): a string that is presented to the user.
+    """
+    valid = {"yes": True, "y": True, "no": False, "n": False}
+
+    while True:
+        print(question + " [y/n]: ", end='')
+        choice = input().lower()
+        if choice in valid:
+            return valid[choice]
+        else:
+            print("Please respond with yes/no or y/n.")
+
+
 def normalize_bbox(xywha, w, h, max_angle=1):
     '''
     Normalize bounding boxes to 0~1 range
