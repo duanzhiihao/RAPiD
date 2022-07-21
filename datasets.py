@@ -37,7 +37,6 @@ class Dataset4YoloAngle(torch.utils.data.Dataset):
             print('Only train on person images and objects')
 
         self.img_ids = []
-        # self.imgid2info = dict()
         self.imgid2path = dict()
         self.imgid2anns = defaultdict(list)
         self.catids = []
@@ -49,16 +48,8 @@ class Dataset4YoloAngle(torch.utils.data.Dataset):
             self.load_anns(imdir, jspath)
 
         if debug_mode:
-            # self.img_ids = self.img_ids[0:1]
             self.img_ids = [428856]
             print(f"debug mode..., only train on one image: {self.img_ids[0]}")
-
-        # transform and data augmentation
-        # self.pil_aug_to_tensor = transforms.Compose([
-        #     transforms.ColorJitter(brightness=0.3,contrast=0.3,saturation=1,hue=0.1),
-        #     transforms.ToTensor(),
-        # ])
-        # self.pil_to_tensor = transforms.ToTensor()
 
     def load_anns(self, img_dir, json_path):
         '''
@@ -71,8 +62,7 @@ class Dataset4YoloAngle(torch.utils.data.Dataset):
         for ann in json_data['annotations']:
             img_id = ann['image_id']
             # get width and height
-            if len(ann['bbox']) == 4:
-                # using COCO dataset. 4 = [x1,y1,w,h]
+            if len(ann['bbox']) == 4: # using COCO dataset. 4 = [x1,y1,w,h]
                 self.coco = True
                 # convert COCO format: x1,y1,w,h to x,y,w,h
                 ann['bbox'][0] = ann['bbox'][0] + ann['bbox'][2] / 2
@@ -125,22 +115,15 @@ class Dataset4YoloAngle(torch.utils.data.Dataset):
         Args:
         index (int): data index
         """
-        # laod image
+        # load image
         img_id = self.img_ids[index]
-        # img_name = self.imgid2info[img_id]['file_name']
-        # img_path = os.path.join(self.img_dir, img_name)
         img_path = self.imgid2path[img_id]
-        self.coco = True if 'COCO' in img_path else False
-        img = Image.open(img_path)
+        self.coco = True if ('coco' in str(img_path).lower()) else False
+        img = Image.open(img_path).convert(mode='RGB')
         ori_w, ori_h = img.width, img.height
-        if img.mode == 'L':
-            # print(f'Warning: image {img_id} is grayscale')
-            img = np.array(img)
-            img = np.repeat(np.expand_dims(img,2), 3, axis=2)
-            img = Image.fromarray(img)
         # now img is a tensor with shape (3,h,w)
 
-        # load unnormalized annotation
+        # load *unnormalized* annotations
         annotations = self.imgid2anns[img_id]
         gt_num = len(annotations)
         # labels shape(50, 5), 5 = [x, y, w, h, angle]
@@ -152,9 +135,6 @@ class Dataset4YoloAngle(torch.utils.data.Dataset):
                 continue
             area = ann['bbox'][2]*ann['bbox'][3] / ori_w / ori_h
             if self.only_person and self.coco and area <= 0.001:
-                # import matplotlib.pyplot as plt
-                # plt.imshow(np.array(img))
-                # plt.show()
                 continue
             # assert ann['category_id'] == 1, 'only support person object'
             if li >= 50:
