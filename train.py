@@ -7,6 +7,7 @@ import random
 import numpy as np
 import cv2
 import torch
+import torch.cuda.amp as amp
 from torch.utils.data import DataLoader
 
 from models.rapid import RAPiD
@@ -22,12 +23,13 @@ def parse_args():
     parser = argparse.ArgumentParser()
     # dataset
     parser.add_argument('--train_data', type=str,   default='coco')
-    parser.add_argument('--high_res',   action='store_true')
+    parser.add_argument('--high_res',   action=argparse.BooleanOptionalAction, default=False)
     # pre-trained weights
     parser.add_argument('--pretrain',   type=str,   default=None)
     # training
     parser.add_argument('--batch_size', type=int,   default=8)
     parser.add_argument('--iterations', type=int,   default=100_000)
+    parser.add_argument('--amp',        action=argparse.BooleanOptionalAction, default=True)
     # optimizer
     parser.add_argument('--lr',         type=float, default=0.001)
     parser.add_argument('--momentum',   type=float, default=0.9)
@@ -126,7 +128,7 @@ def adjust_lr_(optimizer, i, cfg):
     warm_up = 500
     lr_min = 1e-3
     if i < warm_up:
-        factor = (i / warm_up) ** 2
+        factor = ((i+1) / warm_up) ** 2
     else:
         factor = lr_min + 0.5 * (1 - lr_min) * (1 + np.cos(i * np.pi / cfg.iterations))
     # update learning rate
@@ -153,7 +155,7 @@ def check_directory(log_dir):
         log_dir.mkdir(parents=True)
 
 
-def pbar_log(pbar, optimizer, iter_i, cfg, loss, img_size):
+def pbar_log(pbar, optimizer, iter_i, cfg, loss, img_size, loss_str):
     current_lr = optimizer.param_groups[0]['lr']
     max_cuda = torch.cuda.max_memory_allocated(0) / 1e9
     msg =  f'Iter: {iter_i}/{cfg.iterations} || '
@@ -163,6 +165,9 @@ def pbar_log(pbar, optimizer, iter_i, cfg, loss, img_size):
     msg += f'img_size={img_size} || '
     pbar.set_description(msg)
     torch.cuda.reset_peak_memory_stats(0)
+
+    if (cfg.print_interval > 0) and (iter_i % cfg.print_interval == 0):
+        print(loss_str)
 
 
 def detect_and_save(model, target_size, log_dir):
@@ -213,7 +218,7 @@ def main():
 
     # -------------------------- optimizer ---------------------------
     optimizer = get_optimizer(model, cfg)
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cfg.iterations, eta_min=1e-6)
+    scaler = amp.GradScaler(enabled=cfg.amp) # Automatic Mixed Precision
 
     # start training loop
     pbar = tqdm(range(cfg.iterations)) # progress bar
@@ -232,14 +237,12 @@ def main():
             imgs = imgs.to(device=device)
             loss = model(imgs, targets, labels_cats=cats)
             loss = loss / float(cfg.subdivision)
-            loss.backward()
-        optimizer.step()
-        # scheduler.step()
+            scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
 
         # logging
-        pbar_log(pbar, optimizer, iter_i, cfg, loss, trainset.img_size)
-        if (cfg.print_interval > 0) and (iter_i % cfg.print_interval == 0):
-            print(model.loss_str)
+        pbar_log(pbar, optimizer, iter_i, cfg, loss, trainset.img_size, model.loss_str)
 
         # random resizing
         if (iter_i > 0) and (iter_i % cfg.multiscale_interval == 0):
