@@ -235,8 +235,9 @@ def main():
         for _ in range(cfg.subdivision):
             imgs, targets, cats, _, _ = next(trainloader) # load a batch
             imgs = imgs.to(device=device)
-            loss = model(imgs, targets, labels_cats=cats)
-            loss = loss / float(cfg.subdivision)
+            with amp.autocast(enabled=cfg.amp):
+                loss = model(imgs, targets, labels_cats=cats)
+                loss = loss / float(cfg.subdivision)
             scaler.scale(loss).backward()
         scaler.step(optimizer)
         scaler.update()

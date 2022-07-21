@@ -112,10 +112,10 @@ class PredLayer(nn.Module):
 
         self.ignore_thre = 0.6
 
-        # self.loss4obj = FocalBCE(reduction='sum')
-        self.loss4obj = nn.BCELoss(reduction='sum')
+        # self.loss4obj = nn.BCELoss(reduction='sum')
         self.l2_loss = nn.MSELoss(reduction='sum')
-        self.bce_loss = nn.BCELoss(reduction='sum')
+        self.obj_logits_loss = nn.BCEWithLogitsLoss(reduction='sum')
+        self.bce_logits_loss = nn.BCEWithLogitsLoss(reduction='sum')
         loss_angle = kwargs.get('loss_angle', 'period_L1')
         if loss_angle == 'period_L1':
             self.loss4angle = models.losses.period_L1(reduction='sum')
@@ -152,6 +152,7 @@ class PredLayer(nn.Module):
 
         # sigmoid activation for xy, angle, obj_conf
         xy_offset = torch.sigmoid(raw[..., 0:2]) # x,y
+        xy_offset_logits = raw[..., 0:2] # for computing loss
         # linear activation for w, h
         wh_scale = raw[..., 2:4]
         # angle
@@ -162,6 +163,7 @@ class PredLayer(nn.Module):
             angle = torch.sigmoid(raw[..., 4])
         # logistic activation for objectness confidence
         conf = torch.sigmoid(raw[..., 5])
+        conf_logits = raw[..., 5] # for computing loss
         # now xy is the offsets, wh are is scaling factor,
         # and angle is normalized between 0~1.
 
@@ -287,7 +289,8 @@ class PredLayer(nn.Module):
             target[b,best_n,truth_j,truth_i,4] = gt_boxes[:, 4][valid_mask] / 180 * np.pi
             target[b,best_n,truth_j,truth_i,5] = 1 # objectness confidence
 
-        loss_xy = self.bce_loss(xy_offset[obj_mask], target[...,0:2][obj_mask])
+        # loss_xy = self.bce_loss(xy_offset[obj_mask], target[...,0:2][obj_mask])
+        loss_xy = self.bce_logits_loss(xy_offset_logits[obj_mask], target[...,0:2][obj_mask])
         wh_pred = wh_scale[obj_mask]
         wh_target = target[...,2:4][obj_mask]
         loss_wh = self.l2_loss(wh_pred, wh_target)
@@ -298,7 +301,8 @@ class PredLayer(nn.Module):
         elif self.angle_range == 180:
             angle_pred = angle[obj_mask] * np.pi - np.pi/2
         loss_angle = self.loss4angle(angle_pred, target[..., 4][obj_mask])
-        loss_obj = self.loss4obj(conf[penalty_mask], target[...,5][penalty_mask])
+        # loss_obj = self.loss4obj(conf[penalty_mask], target[...,5][penalty_mask])
+        loss_obj = self.obj_logits_loss(conf_logits[penalty_mask], target[...,5][penalty_mask])
 
         loss = loss_xy + 0.5*loss_wh + loss_angle + loss_obj
         ngt = valid_gt_num + 1e-16
