@@ -1,53 +1,69 @@
-import argparse
+from PIL import Image
+import numpy as np
 import torch
 
 from models.rapid_export import RAPiD
+from utils import utils, visualization
 
 
+def post_processing(dts, pad_info, conf_thres=0.3, nms_thres=0.3):
+    assert isinstance(dts, torch.Tensor)
+    dts = dts[dts[:,5] >= conf_thres].cpu()
+    dts = utils.nms(dts, is_degree=True, nms_thres=nms_thres)
+    dts = utils.detection2original(dts, pad_info.squeeze())
+    return dts
+
+
+@torch.inference_mode()
 def export():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', type=str, default='weights/pL1_MWHB1024_Mar11_4000.ckpt')
-    parser.add_argument('--device',  type=str, default='cuda:0')
-    parser.add_argument('--half',    action='store_true')
-    args = parser.parse_args()
+    device = torch.device('cpu')
+    input_size = 1024 # input image will be resized to this size
 
-    device = torch.device(args.device)
-    input_shape = (1, 3, 1024, 1024)
+    # ======== load model ========
+    model = RAPiD(input_hw=(input_size, input_size))
+    # load weights
+    url = 'https://github.com/duanzhiihao/RAPiD/releases/download/v0.1/pL1_MWHB1024_Mar11_4000.ckpt'
+    checkpoint = torch.hub.load_state_dict_from_url(url)
+    model.load_state_dict(checkpoint['model'])
 
-    model = RAPiD(input_hw=input_shape[2:4])
-    weights = torch.load(args.weights)
-    # from mycv.utils.torch_utils import summary_weights
-    # summary_weights(weights['model'])
-    model.load_state_dict(weights['model'])
-    model = model.to(device=device)
     model.eval()
+    model = model.to(device=device)
 
-    # for k, m in model.named_modules():
-    #     if hasattr(m, 'num_batches_tracked'):
-    #         m.num_batches_tracked = m.num_batches_tracked.float()
-
-    if args.half:
-        model = model.half()
-
-    if args.half:
-        x = torch.rand(*input_shape, dtype=torch.float16, device=device)
-    else:
-        x = torch.rand(*input_shape, device=device)
-    torch.onnx.export(model, x, 'rapid.onnx', verbose=True, opset_version=11)
+    dummy_input = torch.rand(1, 3, input_size, input_size, device=device)
+    torch.onnx.export(model, dummy_input, 'rapid.onnx', verbose=False, opset_version=11)
 
 
-def check():
+def test_onnx():
     import onnx
-    model = onnx.load("rapid.onnx")
-    # Check that the IR is well formed
-    onnx.checker.check_model(model)
-    # Print a human readable representation of the graph
-    s = onnx.helper.printable_graph(model.graph)
-    with open('tmp.txt', 'a') as f:
-        print(s, file=f)
-    debug = 1
+    import onnxruntime
+
+    onnx_model = onnx.load('rapid.onnx')
+    onnx.checker.check_model(onnx_model) # sanity check
+
+    ort_session = onnxruntime.InferenceSession("rapid.onnx", providers=["CPUExecutionProvider"])
+
+    # ======== load image ========
+    input_size = 1024 # input image will be resized to this size
+    img = Image.open('images/exhibition.jpg')
+    img_resized, _, pad_info = utils.rect_to_square(img, None, input_size)
+    im_numpy = np.expand_dims(np.array(img_resized), 0).transpose(0,3,1,2).astype(np.float32) / 255.0
+
+    # ======== run detection ========
+    ort_inputs = {ort_session.get_inputs()[0].name: im_numpy}
+    ort_outs = ort_session.run(None, ort_inputs)
+    dts = ort_outs[0].squeeze(0) # remove the batch dimension
+    print(type(dts), dts.shape, dts.dtype) # numpy.ndarray, (N, 6), float32
+
+    # post-processing
+    dts = torch.from_numpy(dts)
+    dts = post_processing(dts, pad_info, conf_thres=0.3, nms_thres=0.3)
+
+    # ======== visualize the results ========
+    im_uint8 = np.array(img)
+    visualization.draw_dt_on_np(im_uint8, dts)
+    Image.fromarray(im_uint8).save('result-onnx.png')
 
 
 if __name__ == '__main__':
     export()
-    # check()
+    test_onnx()
